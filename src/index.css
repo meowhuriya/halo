@@ -1,0 +1,94 @@
+@import "@fontsource/space-grotesk/index.css";
+@import "@fontsource/jetbrains-mono/index.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: #05070D;
+    color: #F1F5F9;
+    font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* JetBrains Mono tabular numbers for all numerical readouts */
+  .font-mono, [data-num] {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Glass panel design token from §4 */
+.glass-panel {
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.glass-panel-subtle {
+  background-color: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.glass-panel-cyan {
+  background-color: rgba(56, 225, 255, 0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(56, 225, 255, 0.20);
+}
+
+.glass-panel-alert {
+  background-color: rgba(249, 115, 22, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(249, 115, 22, 0.25);
+}
+
+.glass-panel-critical {
+  background-color: rgba(239, 68, 68, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+/* Glove-friendly minimum tap targets (56px) */
+.glove-target {
+  min-height: 56px;
+  min-width: 56px;
+}
+
+/* Mission control starfield subtle animation for Bridge */
+@keyframes starTwinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 0.9; transform: scale(1.1); }
+}
+
+.star-point {
+  animation: starTwinkle 4s ease-in-out infinite;
+}
+
+/* Custom discreet scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(5, 7, 13, 0.8);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 225, 255, 0.4);
+}
