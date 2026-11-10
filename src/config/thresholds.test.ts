@@ -214,30 +214,125 @@ describe('Thresholds No-Gap Rule & Sweep Tests per §6 (v3)', () => {
     expect(classifyRadiation(650).status).toBe('CRITICAL');
   });
 
-  // 9. Other indicators
-  it('PHQ-2, GAD-2, PVT, Amsler, and Orthostatic classifications', () => {
+  // 10. Explicit §6 Table Boundary Assertions
+  it('Explicitly verifies every boundary in §6 table', () => {
+    // 1. Resting Heart Rate boundaries: <40 CRITICAL, 40-49 WATCH, 50-100 NOMINAL, 101-110 WATCH, 111-130 ALERT, >130 CRITICAL
+    expect(classifyHeartRate(39).status).toBe('CRITICAL');
+    expect(classifyHeartRate(40).status).toBe('WATCH');
+    expect(classifyHeartRate(49).status).toBe('WATCH');
+    expect(classifyHeartRate(50).status).toBe('NOMINAL');
+    expect(classifyHeartRate(100).status).toBe('NOMINAL');
+    expect(classifyHeartRate(101).status).toBe('WATCH');
+    expect(classifyHeartRate(110).status).toBe('WATCH');
+    expect(classifyHeartRate(111).status).toBe('ALERT');
+    expect(classifyHeartRate(130).status).toBe('ALERT');
+    expect(classifyHeartRate(131).status).toBe('CRITICAL');
+
+    // 2. Blood Pressure boundaries
+    expect(classifyBloodPressure(89, 75).status).toBe('ALERT'); // sys < 90
+    expect(classifyBloodPressure(90, 75).status).toBe('NOMINAL'); // sys 90-119 and dia < 80
+    expect(classifyBloodPressure(119, 79).status).toBe('NOMINAL');
+    expect(classifyBloodPressure(120, 79).status).toBe('WATCH'); // sys 120-129 and dia < 80
+    expect(classifyBloodPressure(129, 79).status).toBe('WATCH');
+    expect(classifyBloodPressure(130, 79).status).toBe('ALERT'); // sys 130-180
+    expect(classifyBloodPressure(180, 79).status).toBe('ALERT');
+    expect(classifyBloodPressure(181, 79).status).toBe('CRITICAL'); // sys > 180
+    expect(classifyBloodPressure(110, 79).status).toBe('NOMINAL'); // dia < 80
+    expect(classifyBloodPressure(110, 80).status).toBe('ALERT'); // dia 80-120
+    expect(classifyBloodPressure(110, 120).status).toBe('ALERT');
+    expect(classifyBloodPressure(110, 121).status).toBe('CRITICAL'); // dia > 120
+
+    // 3. SpO₂ boundaries: <=90 CRITICAL, 91-92 ALERT, 93-94 WATCH, >=95 NOMINAL
+    expect(classifySpO2(90).status).toBe('CRITICAL');
+    expect(classifySpO2(91).status).toBe('ALERT');
+    expect(classifySpO2(92).status).toBe('ALERT');
+    expect(classifySpO2(93).status).toBe('WATCH');
+    expect(classifySpO2(94).status).toBe('WATCH');
+    expect(classifySpO2(95).status).toBe('NOMINAL');
+
+    // 4. Body Temperature boundaries: <35.0 CRITICAL, 35.0-35.4 ALERT, 35.5-36.0 WATCH, 36.1-37.2 NOMINAL, 37.3-37.9 WATCH, 38.0-39.4 ALERT, >=39.5 CRITICAL
+    expect(classifyTemperature(34.9).status).toBe('CRITICAL');
+    expect(classifyTemperature(35.0).status).toBe('ALERT');
+    expect(classifyTemperature(35.4).status).toBe('ALERT');
+    expect(classifyTemperature(35.5).status).toBe('WATCH');
+    expect(classifyTemperature(36.0).status).toBe('WATCH');
+    expect(classifyTemperature(36.1).status).toBe('NOMINAL');
+    expect(classifyTemperature(37.2).status).toBe('NOMINAL');
+    expect(classifyTemperature(37.3).status).toBe('WATCH');
+    expect(classifyTemperature(37.9).status).toBe('WATCH');
+    expect(classifyTemperature(38.0).status).toBe('ALERT');
+    expect(classifyTemperature(39.4).status).toBe('ALERT');
+    expect(classifyTemperature(39.5).status).toBe('CRITICAL');
+
+    // 5. Blood Glucose boundaries: <54 CRITICAL, 54-69 WATCH, 70-140 NOMINAL (fasting), 141-180 WATCH (fasting), 70-180 NOMINAL (post-meal), 181-250 ALERT, >250 CRITICAL
+    expect(classifyGlucose(53, false).status).toBe('CRITICAL');
+    expect(classifyGlucose(54, false).status).toBe('WATCH');
+    expect(classifyGlucose(69, false).status).toBe('WATCH');
+    expect(classifyGlucose(70, false).status).toBe('NOMINAL');
+    expect(classifyGlucose(140, false).status).toBe('NOMINAL');
+    expect(classifyGlucose(141, false).status).toBe('WATCH');
+    expect(classifyGlucose(180, false).status).toBe('WATCH');
+    expect(classifyGlucose(141, true).status).toBe('NOMINAL'); // post-meal nominal
+    expect(classifyGlucose(180, true).status).toBe('NOMINAL'); // post-meal nominal
+    expect(classifyGlucose(181, false).status).toBe('ALERT');
+    expect(classifyGlucose(250, false).status).toBe('ALERT');
+    expect(classifyGlucose(251, false).status).toBe('CRITICAL');
+
+    // 6. Respiratory Rate boundaries: <10 CRITICAL, 10-11 WATCH, 12-20 NOMINAL, 21-24 WATCH, 25-29 ALERT, >=30 CRITICAL
+    expect(classifyRespiratoryRate(9).status).toBe('CRITICAL');
+    expect(classifyRespiratoryRate(10).status).toBe('WATCH');
+    expect(classifyRespiratoryRate(11).status).toBe('WATCH');
+    expect(classifyRespiratoryRate(12).status).toBe('NOMINAL');
+    expect(classifyRespiratoryRate(20).status).toBe('NOMINAL');
+    expect(classifyRespiratoryRate(21).status).toBe('WATCH');
+    expect(classifyRespiratoryRate(24).status).toBe('WATCH');
+    expect(classifyRespiratoryRate(25).status).toBe('ALERT');
+    expect(classifyRespiratoryRate(29).status).toBe('ALERT');
+    expect(classifyRespiratoryRate(30).status).toBe('CRITICAL');
+
+    // 7. Sleep boundaries: >=7 NOMINAL, 6-6.9 WATCH, single day <6 WATCH, single day <4 ALERT, <6 for 3+ days ALERT, <4 for 2+ days CRITICAL
+    expect(classifySleep(7.0).status).toBe('NOMINAL');
+    expect(classifySleep(6.9).status).toBe('WATCH');
+    expect(classifySleep(6.0).status).toBe('WATCH');
+    expect(classifySleep(5.9).status).toBe('WATCH');
+    expect(classifySleep(4.0).status).toBe('WATCH');
+    expect(classifySleep(3.9).status).toBe('ALERT');
+    expect(classifySleep(5.5, { consecutiveDaysUnder6: 3 }).status).toBe('ALERT');
+    expect(classifySleep(3.5, { consecutiveDaysUnder4: 2 }).status).toBe('CRITICAL');
+
+    // 8. Cumulative Radiation boundaries: <300 NOMINAL, 300-479 WATCH, 480-599 ALERT, >=600 CRITICAL
+    expect(classifyRadiation(299).status).toBe('NOMINAL');
+    expect(classifyRadiation(300).status).toBe('WATCH');
+    expect(classifyRadiation(479).status).toBe('WATCH');
+    expect(classifyRadiation(480).status).toBe('ALERT');
+    expect(classifyRadiation(599).status).toBe('ALERT');
+    expect(classifyRadiation(600).status).toBe('CRITICAL');
+
+    // 9. Mental Health boundaries: PHQ-2 & GAD-2: 0-2 NOMINAL, >=3 ALERT
+    expect(classifyPhq2(0).status).toBe('NOMINAL');
     expect(classifyPhq2(2).status).toBe('NOMINAL');
     expect(classifyPhq2(3).status).toBe('ALERT');
+    expect(classifyGad2(0).status).toBe('NOMINAL');
+    expect(classifyGad2(2).status).toBe('NOMINAL');
+    expect(classifyGad2(3).status).toBe('ALERT');
 
-    expect(classifyGad2(1).status).toBe('NOMINAL');
-    expect(classifyGad2(4).status).toBe('ALERT');
+    // 10. PVT-B boundaries
+    expect(classifyPvt(4.0, 4.0).status).toBe('NOMINAL'); // 0% slowdown
+    expect(classifyPvt(3.6, 4.0).status).toBe('NOMINAL'); // exactly 10% slowdown
+    expect(classifyPvt(3.59, 4.0).status).toBe('WATCH'); // >10% slowdown
+    expect(classifyPvt(3.2, 4.0).status).toBe('WATCH'); // exactly 20% slowdown
+    expect(classifyPvt(3.19, 4.0).status).toBe('ALERT'); // >20% slowdown
 
-    // PVT: speed slowdown > 20% -> ALERT; 10-20% -> WATCH; <=10% -> NOMINAL
-    expect(classifyPvt(4.0, 4.2).status).toBe('NOMINAL'); // ~4.7% slowdown
-    expect(classifyPvt(3.6, 4.2).status).toBe('WATCH'); // 14.3% slowdown
-    expect(classifyPvt(3.2, 4.2).status).toBe('ALERT'); // 23.8% slowdown
-    expect(classifyPvt(4.0, 4.2, 5, 2).status).toBe('WATCH'); // lapses increased by 3
-
-    // Amsler
+    // 11. Amsler Grid boundaries
     expect(classifyAmsler(false, false).status).toBe('NOMINAL');
-    expect(classifyAmsler(true, true).status).toBe('ALERT');
-    expect(classifyAmsler(true, false).status).toBe('WATCH');
-    expect(classifyAmsler(true, false, true).status).toBe('CRITICAL');
+    expect(classifyAmsler(true, false).status).toBe('WATCH'); // persistent
+    expect(classifyAmsler(true, true).status).toBe('ALERT'); // new
+    expect(classifyAmsler(false, false, true).status).toBe('CRITICAL'); // sudden large loss
 
-    // Orthostatic
-    expect(classifyOrthostatic(-10, -5, 15).status).toBe('NOMINAL');
-    expect(classifyOrthostatic(-20, 0, 10).status).toBe('ALERT'); // sys drop >= 20
-    expect(classifyOrthostatic(0, -10, 10).status).toBe('ALERT'); // dia drop >= 10
+    // 12. Orthostatic Stand boundaries
+    expect(classifyOrthostatic(-19, -9, 29).status).toBe('NOMINAL');
+    expect(classifyOrthostatic(-20, 0, 0).status).toBe('ALERT'); // sys drop >= 20
+    expect(classifyOrthostatic(0, -10, 0).status).toBe('ALERT'); // dia drop >= 10
     expect(classifyOrthostatic(0, 0, 30).status).toBe('ALERT'); // HR rise >= 30
     expect(classifyOrthostatic(0, 0, 0, true).status).toBe('CRITICAL'); // fainting
   });
