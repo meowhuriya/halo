@@ -1,4 +1,5 @@
 import { db, type CrewMember, type MissionConfig, type ScheduledTask, type HealthReading } from '../db';
+import { classifySleep, classifyBloodPressure, classifyPvt, classifyAmsler, classifyRadiation } from '../../config/thresholds';
 
 export async function seedDemoMission(): Promise<void> {
   // Clear previous data for a clean demo state
@@ -74,7 +75,7 @@ export async function seedDemoMission(): Promise<void> {
       missionStartDate: startDateStr,
       missionDay: 142,
       timeCompression: true,
-      dosimeterDoseMsv: 255.6, // ~142 days * 1.8 mSv/day
+      dosimeterDoseMsv: 255.6, // ~142 days * 1.8 mSv/day (42.6% of 600 mSv)
       customNotes: 'SIMULATED DATA: Deep space transit cruise phase. Planetary alignment latency 14 min 06 s.',
       updatedAt: now,
     };
@@ -144,28 +145,72 @@ export async function seedDemoMission(): Promise<void> {
 
     await db.tasks.bulkAdd(tasks);
 
-    // 5. Sample recent health readings
+    // 5. Injected stories per §7.15 (v3):
+    // - Sleep declining to ~5.5h in days 120-140 with 3+ consecutive days < 6h -> sleep = ALERT
+    // - PVT slowing by > 20% vs baseline -> PVT = ALERT
+    // - BP drifting upward last 10 days (126/78 mmHg) -> at least WATCH
+    // - One new Amsler distortion in right eye on day 135 -> ALERT
+    // - Cumulative radiation: 255.6 mSv (42.6% of career limit) -> NOMINAL
+    const sleepEval = classifySleep(5.5, { consecutiveDaysUnder6: 3 });
+    const pvtEval = classifyPvt(3.2, 4.2); // (4.2 - 3.2)/4.2 = 23.8% slowdown -> ALERT
+    const bpEval = classifyBloodPressure(126, 78); // 126/78 -> WATCH
+    const amslerEval = classifyAmsler(true, true); // new distortion -> ALERT
+    const radEval = classifyRadiation(255.6); // NOMINAL
+
     const readings: HealthReading[] = [
       {
         crewMemberId: currentCrewId,
         timestamp: now - 3600000 * 3,
         missionDay: 142,
         indicator: 'sleep',
-        value: 5.6,
+        value: 5.5,
         unit: 'hours',
-        status: 'WATCH',
-        reasons: ['Sleep 5.6 h is below 6 h for consecutive nights (accumulating sleep debt)'],
+        status: sleepEval.status,
+        reasons: sleepEval.reasons,
         source: 'manual',
+      },
+      {
+        crewMemberId: currentCrewId,
+        timestamp: now - 3600000 * 4,
+        missionDay: 142,
+        indicator: 'pvt',
+        value: 3.2,
+        unit: 'speed (1/s)',
+        status: pvtEval.status,
+        reasons: pvtEval.reasons,
+        source: 'pvt',
+      },
+      {
+        crewMemberId: currentCrewId,
+        timestamp: now - 3600000 * 5,
+        missionDay: 142,
+        indicator: 'blood_pressure',
+        value: { systolic: 126, diastolic: 78 },
+        unit: 'mmHg',
+        status: bpEval.status,
+        reasons: bpEval.reasons,
+        source: 'manual',
+      },
+      {
+        crewMemberId: currentCrewId,
+        timestamp: now - 3600000 * 24 * 7, // day 135
+        missionDay: 135,
+        indicator: 'amsler',
+        value: { eye: 'right', newDistortionCount: 1 },
+        unit: 'grid',
+        status: amslerEval.status,
+        reasons: amslerEval.reasons,
+        source: 'amsler',
       },
       {
         crewMemberId: currentCrewId,
         timestamp: now - 3600000 * 18,
         missionDay: 141,
         indicator: 'heart_rate',
-        value: 72,
+        value: 68,
         unit: 'bpm',
         status: 'NOMINAL',
-        reasons: ['Within nominal clinical resting limits (50-100 bpm)'],
+        reasons: ['Within nominal clinical resting limits (50–100 bpm)'],
         source: 'camera',
         quality: 'GOOD',
       },
@@ -174,11 +219,22 @@ export async function seedDemoMission(): Promise<void> {
         timestamp: now - 3600000 * 18,
         missionDay: 141,
         indicator: 'spo2',
-        value: 97,
+        value: 98,
         unit: '%',
         status: 'NOMINAL',
-        reasons: ['Normal oxygenation in cabin atmosphere'],
+        reasons: ['Normal oxygenation in cabin atmosphere (≥ 95%)'],
         source: 'manual',
+      },
+      {
+        crewMemberId: currentCrewId,
+        timestamp: now,
+        missionDay: 142,
+        indicator: 'radiation',
+        value: 255.6,
+        unit: 'mSv',
+        status: radEval.status,
+        reasons: radEval.reasons,
+        source: 'calculated',
       },
     ];
 

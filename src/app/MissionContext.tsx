@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { db, type CrewMember, type MissionConfig } from '../data/db';
+import { db, type CrewMember, type MissionConfig, type HealthReading } from '../data/db';
 import {
   ENVIRONMENTS,
   getAutonomyLevel,
@@ -8,6 +8,7 @@ import {
   type MissionEnvironment,
 } from '../config/environments';
 import { seedDemoMission } from '../data/seed/demoMission';
+import { computeReadinessFromReadings } from '../engine/readiness';
 
 interface MissionContextValue {
   crew: CrewMember | null;
@@ -74,12 +75,22 @@ export const MissionProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const unread = await db.groundPackets.filter((p) => !p.read).count();
       setUnreadGroundCount(unread);
 
-      // Estimate readiness score based on alerts
-      if (alerts > 0) {
-        setReadinessScore(Math.max(45, 88 - alerts * 15));
-      } else {
-        setReadinessScore(92);
+      // Compute accurate readiness score from readings & overdue tasks per §7.9
+      const allReadings = await db.healthReadings.toArray();
+      const latestByIndicator = new Map<string, HealthReading>();
+      for (const r of allReadings) {
+        const existing = latestByIndicator.get(r.indicator);
+        if (!existing || r.timestamp > existing.timestamp) {
+          latestByIndicator.set(r.indicator, r);
+        }
       }
+
+      const overdueCount = await db.tasks.filter((t) => t.status === 'overdue').count();
+      const readinessResult = computeReadinessFromReadings(
+        Array.from(latestByIndicator.values()),
+        overdueCount
+      );
+      setReadinessScore(readinessResult.score);
     } catch (err) {
       console.error('Failed to load mission from DB:', err);
     } finally {

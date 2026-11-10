@@ -39,8 +39,8 @@ export default defineConfig({
         ]
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 25 * 1024 * 1024, // 25 MiB to cache MediaPipe WASM & models
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,wasm,task}'],
+        maximumFileSizeToCacheInBytes: 20 * 1024 * 1024,
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2,json,wasm,task}'],
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.origin === self.location.origin,

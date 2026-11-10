@@ -7,23 +7,22 @@ import {
   X
 } from 'lucide-react';
 import { BigButton } from '../../design/components/BigButton';
+import { speakOffline } from '../../utils/speech';
 
 export const EmergencyView: React.FC = () => {
   const navigate = useNavigate();
   const [testedVoice, setTestedVoice] = useState(false);
+  const [caption, setCaption] = useState(
+    'HALO Emergency Mode active. Is the crew member responsive and breathing normally?'
+  );
 
-  // Test Web Speech API speechSynthesis offline
-  const handleTestVoice = () => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(
-        'HALO Emergency Mode active. Is the crew member responsive and breathing normally?'
-      );
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-      window.speechSynthesis.speak(utterance);
-      setTestedVoice(true);
-    }
+  // Test Web Speech API speechSynthesis offline with local voice per §3 (v3)
+  const handleSpeak = (text: string) => {
+    setCaption(text);
+    speakOffline(text, {
+      onStart: () => setTestedVoice(true),
+      onError: () => setTestedVoice(true), // Captions alone suffice if voice unavailable
+    });
   };
 
   return (
@@ -55,7 +54,7 @@ export const EmergencyView: React.FC = () => {
       </div>
 
       {/* Main Flow: First Triage Question per §7.11 */}
-      <div className="max-w-3xl w-full mx-auto my-auto py-8 space-y-8">
+      <div className="max-w-3xl w-full mx-auto my-auto py-8 space-y-6">
         
         <div className="text-center space-y-3">
           <span className="text-xs font-mono text-red-400 uppercase tracking-widest px-3 py-1 rounded-full bg-red-950/60 border border-red-500/40">
@@ -69,13 +68,23 @@ export const EmergencyView: React.FC = () => {
           </p>
         </div>
 
+        {/* Live On-Screen Caption per §3 (v3) */}
+        <div className="p-4 rounded-2xl bg-black/60 border border-red-500/30 text-center">
+          <span className="text-[10px] font-mono uppercase text-red-400 tracking-wider block mb-1">
+            VOICE CAPTION (OFFLINE LOCAL VOICE)
+          </span>
+          <p className="text-sm font-semibold text-slate-100 font-mono">
+            &ldquo;{caption}&rdquo;
+          </p>
+        </div>
+
         {/* Huge Glove-Friendly Buttons per §7.11 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <BigButton
             variant="danger"
             size="xl"
             icon={<AlertOctagon size={24} />}
-            onClick={() => handleTestVoice()}
+            onClick={() => handleSpeak('Patient unresponsive. Call crew and CMO immediately. Initiate microgravity CPR coach.')}
             className="flex-col py-6 min-h-[96px]"
           >
             <span className="text-xl font-black">NO · UNRESPONSIVE</span>
@@ -86,7 +95,7 @@ export const EmergencyView: React.FC = () => {
             variant="secondary"
             size="xl"
             icon={<Heart size={24} className="text-red-400" />}
-            onClick={() => handleTestVoice()}
+            onClick={() => handleSpeak('Patient is conscious. Assessing chest pain, trauma, and respiratory distress symptoms.')}
             className="flex-col py-6 min-h-[96px] bg-white/10 border-red-500/40 text-white"
           >
             <span className="text-xl font-black">YES · CONSCIOUS</span>
@@ -99,11 +108,11 @@ export const EmergencyView: React.FC = () => {
           <div className="flex items-center gap-3">
             <Volume2 className="text-red-400 shrink-0" size={20} />
             <div className="text-xs text-red-200">
-              <strong>Offline Voice Guidance (Web Speech API):</strong> Hands-free step-by-step synthesized voice instructions.
+              <strong>Offline Voice Guidance (Web Speech API):</strong> Uses local offline voice (<code>localService: true</code>) with mandatory on-screen captions.
             </div>
           </div>
           <button
-            onClick={handleTestVoice}
+            onClick={() => handleSpeak('HALO voice synthesis test. Operating completely offline in deep space.')}
             className="px-4 py-2.5 rounded-xl bg-red-600/40 hover:bg-red-600/70 border border-red-400 text-xs font-mono font-bold shrink-0 text-white"
           >
             {testedVoice ? '✓ Audio Tested' : 'Test Speech'}
