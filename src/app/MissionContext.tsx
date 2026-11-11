@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { db, type CrewMember, type MissionConfig, type HealthReading } from '../data/db';
+import { db, type CrewMember, type MissionConfig } from '../data/db';
 import {
   ENVIRONMENTS,
   getAutonomyLevel,
@@ -9,6 +9,8 @@ import {
 } from '../config/environments';
 import { seedDemoMission } from '../data/seed/demoMission';
 import { computeReadinessFromReadings } from '../engine/readiness';
+import { getEffectiveTaskStatus } from '../engine/scheduler';
+import { buildDigitalTwinTelemetry } from '../features/bridge/digitalTwin';
 
 interface MissionContextValue {
   crew: CrewMember | null;
@@ -65,32 +67,46 @@ export const MissionProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setConfig(null);
       }
 
-      // Check alerts count
-      const alerts = await db.healthReadings
-        .filter((r) => r.status === 'ALERT' || r.status === 'CRITICAL')
-        .count();
-      setActiveAlertCount(alerts);
-
       // Check ground unread
       const unread = await db.groundPackets.filter((p) => !p.read).count();
       setUnreadGroundCount(unread);
 
-      // Compute accurate readiness score from readings & overdue tasks per §7.9
-      const allReadings = await db.healthReadings.toArray();
-      const latestByIndicator = new Map<string, HealthReading>();
-      for (const r of allReadings) {
-        const existing = latestByIndicator.get(r.indicator);
-        if (!existing || r.timestamp > existing.timestamp) {
-          latestByIndicator.set(r.indicator, r);
-        }
-      }
+      // Compute accurate readiness score & active alert count from crew telemetry per §7.9
+      const currentDay = savedConfig?.missionDay ?? 1;
+      const currentEnv = ENVIRONMENTS[savedConfig?.environmentId || 'transit'] || ENVIRONMENTS.transit;
 
-      const overdueCount = await db.tasks.filter((t) => t.status === 'overdue').count();
-      const readinessResult = computeReadinessFromReadings(
-        Array.from(latestByIndicator.values()),
-        overdueCount
+      const crewReadings = active?.id
+        ? await db.healthReadings.where('crewMemberId').equals(active.id).toArray()
+        : [];
+      const crewBaselines = active?.id
+        ? await db.baselines.where('crewMemberId').equals(active.id).toArray()
+        : [];
+      const crewTasks = active?.id
+        ? await db.tasks.where('crewMemberId').equals(active.id).toArray()
+        : [];
+
+      const twin = buildDigitalTwinTelemetry({
+        crew: active,
+        readings: crewReadings,
+        baselines: crewBaselines,
+        tasks: crewTasks,
+        config: savedConfig || null,
+        environment: currentEnv,
+      });
+
+      const overdueTasks = crewTasks.filter(
+        (t) => getEffectiveTaskStatus(t, currentDay) === 'overdue'
       );
+
+      const readinessResult = computeReadinessFromReadings(
+        twin.allLatestReadings,
+        overdueTasks.map((t) => ({ title: t.title, dueDay: t.dueDay }))
+      );
+
       setReadinessScore(readinessResult.score);
+      setActiveAlertCount(
+        twin.alerts.filter((a) => a.status === 'ALERT' || a.status === 'CRITICAL').length
+      );
     } catch (err) {
       console.error('Failed to load mission from DB:', err);
     } finally {

@@ -77,6 +77,31 @@
   animation: starTwinkle 4s ease-in-out infinite;
 }
 
+@keyframes haloCriticalPulse {
+  0%, 100% {
+    opacity: 0.72;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.045);
+  }
+}
+
+.critical-region-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: haloCriticalPulse 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star-point,
+  .critical-region-pulse,
+  .animate-pulse {
+    animation: none !important;
+  }
+}
+
 /* Custom discreet scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
