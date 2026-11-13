@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { User, Users, Check, Heart, Activity } from 'lucide-react';
 import type { CrewMember, PersonalBaseline } from '../../data/db';
 
@@ -20,6 +20,8 @@ export const PatientSelectStep: React.FC<PatientSelectStepProps> = ({
   onConfirm,
 }) => {
   const isMe = selectedPatient?.id === currentCrew?.id;
+  const [showCrew, setShowCrew] = useState(false);
+  const crewmateChosen = showCrew || (!!selectedPatient && !isMe);
 
   const hrBaseline = baselines.find((b) => b.indicator === 'heart_rate');
   const bpBaseline = baselines.find((b) => b.indicator === 'blood_pressure');
@@ -47,7 +49,7 @@ export const PatientSelectStep: React.FC<PatientSelectStepProps> = ({
           <button
             type="button"
             data-testid="patient-choice-me"
-            onClick={() => onSelectPatient(currentCrew)}
+            onClick={() => { setShowCrew(false); onSelectPatient(currentCrew); }}
             className={`h-[84px] min-h-[84px] p-4 rounded-2xl flex items-center justify-between border-2 transition-all cursor-pointer glove-target text-left shadow-lg ${
               isMe
                 ? 'bg-gradient-to-r from-red-600 to-rose-700 border-white text-white shadow-[0_0_30px_rgba(239,68,68,0.7)]'
@@ -71,30 +73,42 @@ export const PatientSelectStep: React.FC<PatientSelectStepProps> = ({
           </button>
         )}
 
-        <div className="h-[84px] min-h-[84px] p-4 rounded-2xl bg-black/40 border-2 border-red-500/30 flex items-center justify-between">
+        <button
+          type="button"
+          data-testid="patient-choice-crewmate"
+          onClick={() => setShowCrew(true)}
+          aria-pressed={crewmateChosen}
+          className={`h-[84px] min-h-[84px] p-4 rounded-2xl flex items-center justify-between border-2 transition-all cursor-pointer glove-target text-left shadow-lg ${
+            crewmateChosen
+              ? 'bg-gradient-to-r from-red-600 to-rose-700 border-white text-white shadow-[0_0_30px_rgba(239,68,68,0.7)]'
+              : 'bg-black/50 hover:bg-black/75 border-red-500/40 text-slate-100 hover:border-red-400'
+          }`}
+        >
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-red-950/70 border border-red-500/40 flex items-center justify-center text-red-300 font-bold shrink-0">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold shrink-0 ${crewmateChosen ? 'bg-white text-red-700' : 'bg-red-950/70 border border-red-500/40 text-red-300'}`}>
               <Users size={22} />
             </div>
             <div>
-              <div className="text-sm font-black text-white leading-tight">
+              <div className="text-base font-black tracking-wide leading-tight">
                 A Crewmate Needs Help
               </div>
-              <div className="text-xs text-red-200/80">
-                Select patient below to load baseline
+              <div className="text-xs opacity-80 font-mono">
+                {crewmateChosen ? 'Choose the crewmate below' : 'Tap, then pick the crewmate'}
               </div>
             </div>
           </div>
-        </div>
+          {crewmateChosen && !isMe && selectedPatient && <Check size={22} className="text-white shrink-0 ml-2" />}
+        </button>
       </div>
 
       {/* Crewmate Picker List (§7.11) */}
+      {crewmateChosen && (
       <div className="space-y-2">
         <label className="text-xs font-mono uppercase tracking-wider text-red-300 font-bold block">
           All Mission Crew Members ({allCrew.length})
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-          {allCrew.map((member) => {
+          {allCrew.filter((m) => m.id !== currentCrew?.id).map((member) => {
             const isSelected = selectedPatient?.id === member.id;
             return (
               <button
@@ -127,6 +141,7 @@ export const PatientSelectStep: React.FC<PatientSelectStepProps> = ({
           })}
         </div>
       </div>
+      )}
 
       {/* Selected Patient Baseline Card */}
       {selectedPatient && (

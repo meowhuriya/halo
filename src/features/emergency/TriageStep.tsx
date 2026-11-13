@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AlertOctagon, Heart, ShieldAlert, Wind } from 'lucide-react';
 import type { CrewMember } from '../../data/db';
 import type { EmergencyType } from './emergencyLogic';
@@ -14,6 +14,7 @@ export const TriageStep: React.FC<TriageStepProps> = ({
   onSelectUnresponsive,
   onSelectConsciousProtocol,
 }) => {
+  const [conscious, setConscious] = useState(false);
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6" data-testid="emergency-triage-step">
       {/* Triage Banner */}
@@ -51,7 +52,17 @@ export const TriageStep: React.FC<TriageStepProps> = ({
         </button>
 
         {/* YES -> Conscious -> Choose clinical presentation */}
-        <div className="h-[120px] min-h-[120px] p-5 rounded-2xl bg-black/60 border-2 border-red-500/40 flex flex-col justify-center items-start text-left">
+        <button
+          type="button"
+          data-testid="triage-conscious-btn"
+          onClick={() => setConscious(true)}
+          aria-pressed={conscious}
+          className={`h-[120px] min-h-[120px] p-5 rounded-2xl border-2 flex flex-col justify-center items-start text-left transition-all cursor-pointer glove-target active:scale-98 ${
+            conscious
+              ? 'bg-emerald-700/40 border-emerald-300 shadow-[0_0_30px_rgba(52,211,153,0.5)]'
+              : 'bg-black/60 hover:bg-black/80 border-red-500/40 hover:border-emerald-400'
+          }`}
+        >
           <div className="flex items-center gap-2 text-emerald-400">
             <Heart size={24} className="shrink-0" />
             <span className="text-xl sm:text-2xl font-black tracking-wider text-white">
@@ -59,13 +70,14 @@ export const TriageStep: React.FC<TriageStepProps> = ({
             </span>
           </div>
           <p className="text-xs text-red-200/80 mt-1 font-mono">
-            Patient is breathing. Select clinical emergency symptom below:
+            {conscious ? 'Patient is breathing. Now choose the symptom below.' : 'Patient is breathing and responds → choose symptom'}
           </p>
-        </div>
+        </button>
       </div>
 
       {/* Conscious Emergency Protocol Options (>= 72px buttons) */}
-      <div className="space-y-3">
+      {conscious && (
+      <div className="space-y-3" data-testid="conscious-protocols">
         <label className="text-xs font-mono uppercase tracking-wider text-red-300 font-bold block">
           Select Conscious Clinical Protocol (§7.11):
         </label>
@@ -131,6 +143,7 @@ export const TriageStep: React.FC<TriageStepProps> = ({
           </button>
         </div>
       </div>
+      )}
     </div>
   );
 };

@@ -66,7 +66,7 @@ export const ScanView: React.FC = () => {
   const exposureLockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // State
-  const [mode, setMode] = useState<ScanMode>('face');
+  const [mode, setMode] = useState<ScanMode>('fingertip');
   const [phase, setPhase] = useState<ScanPhase>('idle');
   const [elapsed, setElapsed] = useState(0);
   const [result, setResult] = useState<RppgPipelineResult | null>(null);
@@ -74,7 +74,6 @@ export const ScanView: React.FC = () => {
   const [fingertipResult, setFingertipResult] = useState<RppgPipelineResult | null>(null);
   const [guidance, setGuidance] = useState('');
   const [error, setError] = useState('');
-  const [poorFaceCount, setPoorFaceCount] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [liveWaveform, setLiveWaveform] = useState<number[]>([]);
@@ -469,7 +468,6 @@ export const ScanView: React.FC = () => {
     if (scanMode === 'face') {
       setFaceResult(finalRes);
       if (!finalRes || finalRes.quality === 'POOR') {
-        setPoorFaceCount(prev => prev + 1);
       }
     } else {
       setFingertipResult(finalRes);
@@ -499,7 +497,6 @@ export const ScanView: React.FC = () => {
       if (mode === 'face') {
         setFaceResult(finalRes);
         if (!finalRes || finalRes.quality === 'POOR') {
-          setPoorFaceCount(prev => prev + 1);
         }
       } else {
         setFingertipResult(finalRes);
@@ -794,16 +791,25 @@ export const ScanView: React.FC = () => {
                   icon={<Play size={16} />}
                   onClick={() => startScan(mode)}
                 >
-                  {mode === 'face' ? 'Start Face Scan' : 'Start Fingertip Scan'}
+                  {mode === 'face' ? 'Start Face Scan (Experimental)' : 'Start Fingertip Scan'}
                 </BigButton>
-                {poorFaceCount >= 2 && (
+                {mode === 'fingertip' ? (
+                  <BigButton
+                    variant="glass"
+                    size="md"
+                    icon={<Play size={16} />}
+                    onClick={() => setMode('face')}
+                  >
+                    Face Scan · Experimental
+                  </BigButton>
+                ) : (
                   <BigButton
                     variant="glass"
                     size="md"
                     icon={<Fingerprint size={16} />}
-                    onClick={() => startScan('fingertip')}
+                    onClick={() => setMode('fingertip')}
                   >
-                    Try Fingertip
+                    Use Fingertip (recommended)
                   </BigButton>
                 )}
               </>
