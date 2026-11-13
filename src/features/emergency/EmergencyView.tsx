@@ -1,148 +1,341 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  AlertOctagon, 
-  Volume2, 
-  Heart, 
-  X
-} from 'lucide-react';
-import { BigButton } from '../../design/components/BigButton';
-import { speakOffline } from '../../utils/speech';
+import { useMission } from '../../app/MissionContext';
+import { db, type CrewMember, type PersonalBaseline } from '../../data/db';
+import { getLocalVoice, speakOffline } from '../../utils/speech';
+import { CprCoachProtocol } from './CprCoachProtocol';
+import { ChestPainProtocol } from './ChestPainProtocol';
+import { DecisionClockBar } from './DecisionClockBar';
+import {
+  buildSbarReport,
+  type EmergencyType,
+  type SbarReportData,
+  type VitalsSnapshot,
+} from './emergencyLogic';
+import { PatientSelectStep } from './PatientSelectStep';
+import { RadiationStormProtocol } from './RadiationStormProtocol';
+import { SbarReportView } from './SbarReportView';
+import { SpeechCaptionBanner } from './SpeechCaptionBanner';
+import { ToxicBreathingProtocol } from './ToxicBreathingProtocol';
+import { TriageStep } from './TriageStep';
+
+type FlowStage = 'PATIENT_SELECT' | 'TRIAGE' | 'PROTOCOL' | 'SBAR';
 
 export const EmergencyView: React.FC = () => {
   const navigate = useNavigate();
-  const [testedVoice, setTestedVoice] = useState(false);
-  const [caption, setCaption] = useState(
-    'HALO Emergency Mode active. Is the crew member responsive and breathing normally?'
+  const { crew, allCrew, config, environment } = useMission();
+
+  // Navigation & Flow state
+  const [stage, setStage] = useState<FlowStage>('PATIENT_SELECT');
+  const [activeEmergencyType, setActiveEmergencyType] = useState<EmergencyType>('CPR');
+
+  // Emergency Session Timing
+  const [startedAt] = useState<number>(Date.now());
+  const oneWayDelaySeconds = config?.oneWayDelaySeconds ?? environment.defaultDelaySeconds;
+  const missionDay = config?.missionDay ?? 1;
+
+  // Patient & Medical Record Data
+  const [patient, setPatient] = useState<CrewMember | null>(crew || allCrew[0] || null);
+  const [patientBaselines, setPatientBaselines] = useState<PersonalBaseline[]>([]);
+
+  // Protocol Execution Log & Telemetry Timeline
+  const [protocolSteps, setProtocolSteps] = useState<Array<{ timestamp: number; step: string }>>([]);
+  const [capturedVitals, setCapturedVitals] = useState<VitalsSnapshot[]>([]);
+
+  // SBAR Report & Outbox State
+  const [sbarData, setSbarData] = useState<SbarReportData | null>(null);
+  const [isPacketQueued, setIsPacketQueued] = useState(false);
+
+  // Audio Speech & Captions State
+  const [isMuted, setIsMuted] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [hasLocalVoice, setHasLocalVoice] = useState(false);
+  const [currentCaption, setCurrentCaption] = useState(
+    'HALO Emergency Medical Rescue activated. Step zero: Who needs help?'
   );
 
-  // Test Web Speech API speechSynthesis offline with local voice per §3 (v3)
-  const handleSpeak = (text: string) => {
-    setCaption(text);
-    speakOffline(text, {
-      onStart: () => setTestedVoice(true),
-      onError: () => setTestedVoice(true), // Captions alone suffice if voice unavailable
+  const lastSpokenRef = useRef(currentCaption);
+
+  // Load local voice capability on mount per §3 (v3)
+  useEffect(() => {
+    const voice = getLocalVoice();
+    setHasLocalVoice(Boolean(voice?.localService));
+  }, []);
+
+  // Load active patient baselines whenever patient selection changes
+  useEffect(() => {
+    if (!patient?.id) return;
+    void db.baselines
+      .where('crewMemberId')
+      .equals(patient.id)
+      .toArray()
+      .then((records) => {
+        setPatientBaselines(records);
+      });
+  }, [patient?.id]);
+
+  // Voice utterance handler with offline local voice fallback per §3 & §7.11
+  const speak = useCallback(
+    (text: string) => {
+      setCurrentCaption(text);
+      lastSpokenRef.current = text;
+      if (isMuted) return;
+
+      setIsSpeaking(true);
+      speakOffline(text, {
+        onStart: () => setIsSpeaking(true),
+        onEnd: () => setIsSpeaking(false),
+        onError: () => setIsSpeaking(false),
+      });
+    },
+    [isMuted]
+  );
+
+  // Speak initial prompt on stage transitions
+  useEffect(() => {
+    if (stage === 'PATIENT_SELECT') {
+      speak('HALO Emergency Mode active. Step zero: Who needs emergency medical help?');
+    } else if (stage === 'TRIAGE') {
+      const patientName = patient ? patient.name : 'the crew member';
+      speak(`Is ${patientName} responsive and breathing normally? Check verbal call and chest rise.`);
+    }
+  }, [stage, patient, speak]);
+
+  const handleRepeatVoice = () => {
+    speak(lastSpokenRef.current);
+  };
+
+  const handleLogProtocolStep = useCallback((step: string) => {
+    setProtocolSteps((prev) => [...prev, { timestamp: Date.now(), step }]);
+  }, []);
+
+  const handleRecordVitals = useCallback((snapshot: VitalsSnapshot) => {
+    setCapturedVitals((prev) => [...prev, snapshot]);
+  }, []);
+
+  // Step 0 confirmation -> go to Triage
+  const handleConfirmPatient = () => {
+    if (!patient) return;
+    setStage('TRIAGE');
+    handleLogProtocolStep(`Patient confirmed: ${patient.name} [${patient.callSign}] (${patient.role}).`);
+  };
+
+  // Triage Question 1 -> Unresponsive -> Protocol 1 (CPR)
+  const handleSelectUnresponsive = () => {
+    setActiveEmergencyType('CPR');
+    setStage('PROTOCOL');
+    handleLogProtocolStep('Triage: Patient unresponsive with absent normal breathing. CPR protocol initiated.');
+    speak('Patient is unresponsive. Call crew and CMO immediately. Initiate microgravity CPR metronome at 110 beats per minute.');
+  };
+
+  // Triage Question 1 -> Conscious -> Choose protocol
+  const handleSelectConsciousProtocol = (type: EmergencyType) => {
+    setActiveEmergencyType(type);
+    setStage('PROTOCOL');
+    handleLogProtocolStep(`Triage: Conscious emergency protocol ${type} selected.`);
+    if (type === 'CHEST_PAIN') {
+      speak('Conscious patient reporting chest pain. Begin acute coronary and decompression screening.');
+    } else if (type === 'TOXIC_BREATHING') {
+      speak('Toxic atmosphere or smoke reported. Don emergency oxygen masks immediately and evacuate module.');
+    } else if (type === 'SOLAR_STORM') {
+      speak('Solar Particle Event radiation alert. Move entire crew to the core storm shelter immediately.');
+    }
+  };
+
+  // Generate SBAR incident report per §7.11
+  const handleGenerateSbarAndExit = useCallback(async () => {
+    if (!patient) {
+      navigate('/');
+      return;
+    }
+
+    const summaryMap: Record<EmergencyType, string> = {
+      CPR: 'Cardiac arrest / unresponsive crewmember. 110/min CPR metronome and AED staging conducted.',
+      CHEST_PAIN: 'Acute chest pain triage. Red-flag coronary and decompression screening performed.',
+      TOXIC_BREATHING: 'Toxic atmosphere / smoke inhalation event. Mask donned and compartment sealed.',
+      SOLAR_STORM: 'Solar Particle Event (SPE) radiation storm shelter evacuation protocol executed.',
+      GENERAL: 'Autonomous emergency medical rescue guidance protocol completed.',
+    };
+
+    // Load recent flags from patient healthReadings for Background section
+    const recentReadings = await db.healthReadings
+      .where('crewMemberId')
+      .equals(patient.id!)
+      .toArray();
+
+    const recentFlags = recentReadings
+      .filter((r) => r.status === 'ALERT' || r.status === 'CRITICAL')
+      .slice(-5)
+      .map((r) => ({
+        day: r.missionDay,
+        indicator: r.indicator,
+        status: r.status,
+        note: r.reasons?.[0] || 'Abnormal indicator value',
+      }));
+
+    const sbar = buildSbarReport({
+      patient,
+      emergencyType: activeEmergencyType,
+      startedAt,
+      endedAt: Date.now(),
+      missionDay,
+      environmentName: environment.name,
+      oneWayDelaySeconds,
+      summary: summaryMap[activeEmergencyType] || 'Autonomous emergency medical protocol executed.',
+      baselines: patientBaselines,
+      recentFlags,
+      recentEva: activeEmergencyType === 'CHEST_PAIN',
+      protocolStepsCompleted: protocolSteps,
+      vitalsTimeline: capturedVitals,
     });
+
+    setSbarData(sbar);
+    setStage('SBAR');
+    speak('Emergency protocol concluded. Generating clinical SBAR incident report for Ground Link handover.');
+  }, [
+    activeEmergencyType,
+    capturedVitals,
+    environment.name,
+    missionDay,
+    navigate,
+    oneWayDelaySeconds,
+    patient,
+    patientBaselines,
+    protocolSteps,
+    speak,
+    startedAt,
+  ]);
+
+  // Transmit SBAR to Ground Link outbox (db.groundPackets) & log to db.incidentReports
+  const handleTransmitToGround = async () => {
+    if (!sbarData || !patient) return;
+
+    // 1. Add to groundPackets as a HIGH priority downlink packet per §7.11 & §7.12
+    await db.groundPackets.add({
+      direction: 'downlink',
+      priority: 'HIGH',
+      type: 'INCIDENT',
+      title: `EMERGENCY SBAR REPORT: ${sbarData.situation.emergencyType} - ${patient.name} (${patient.callSign})`,
+      payload: sbarData as unknown as Record<string, unknown>,
+      sentAt: Date.now(),
+      arrivalAt: Date.now() + oneWayDelaySeconds * 1000,
+      delivered: false,
+      read: false,
+    });
+
+    // 2. Add to incidentReports Dexie table
+    await db.incidentReports.add({
+      timestamp: Date.now(),
+      missionDay,
+      emergencyType: sbarData.situation.emergencyType as 'CPR' | 'CHEST_PAIN' | 'TOXIC_BREATHING' | 'SOLAR_STORM',
+      summary: sbarData.situation.summary,
+      timeline: protocolSteps.map((p) => ({ time: p.timestamp, event: p.step })),
+      vitalsCaptured: (capturedVitals[capturedVitals.length - 1] as unknown as Record<string, unknown>) || {},
+      status: 'ongoing',
+    });
+
+    setIsPacketQueued(true);
+    speak('SBAR Incident Report queued to Ground Link with high priority.');
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#1A0305] text-white flex flex-col p-4 sm:p-8 overflow-y-auto">
-      
-      {/* Top Emergency Header Bar */}
-      <div className="max-w-4xl w-full mx-auto flex items-center justify-between pb-4 border-b border-red-500/30">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-red-600 flex items-center justify-center shadow-[0_0_25px_rgba(239,68,68,0.8)] animate-pulse">
-            <AlertOctagon size={28} className="text-white" />
-          </div>
-          <div>
-            <div className="text-[11px] font-mono tracking-widest text-red-300 uppercase">
-              AUTONOMOUS MEDICAL RESCUE
-            </div>
-            <h1 className="text-xl sm:text-2xl font-black text-white tracking-wide">
-              EMERGENCY PROTOCOL SYSTEM
-            </h1>
-          </div>
-        </div>
+    <div
+      data-testid="emergency-screen"
+      className="fixed inset-0 z-50 bg-[#120204] text-white flex flex-col overflow-y-auto selection:bg-red-500 selection:text-white"
+    >
+      {/* Pinned Decision Clock on Every Emergency Screen (§7.11 v3) */}
+      <DecisionClockBar
+        startedAt={startedAt}
+        oneWayDelaySeconds={oneWayDelaySeconds}
+        patient={patient}
+        isMuted={isMuted}
+        onToggleMute={() => setIsMuted((prev) => !prev)}
+        onExitAndReport={() => void handleGenerateSbarAndExit()}
+      />
 
-        <button
-          onClick={() => navigate('/')}
-          className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 text-xs font-mono font-bold flex items-center gap-1.5 transition-colors"
-        >
-          <X size={16} />
-          <span>EXIT TO BRIDGE</span>
-        </button>
-      </div>
+      {/* Main Protocol Workspace */}
+      <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 space-y-6 flex flex-col justify-start">
+        {/* On-Screen Speech Caption Banner with Repeat button per §7.11 */}
+        <SpeechCaptionBanner
+          caption={currentCaption}
+          hasLocalVoice={hasLocalVoice}
+          isSpeaking={isSpeaking}
+          onRepeat={handleRepeatVoice}
+        />
 
-      {/* Main Flow: First Triage Question per §7.11 */}
-      <div className="max-w-3xl w-full mx-auto my-auto py-8 space-y-6">
-        
-        <div className="text-center space-y-3">
-          <span className="text-xs font-mono text-red-400 uppercase tracking-widest px-3 py-1 rounded-full bg-red-950/60 border border-red-500/40">
-            TRIAGE QUESTION 1
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
-            Is the person responsive and breathing normally?
-          </h2>
-          <p className="text-xs sm:text-sm text-red-200/80">
-            Check pulse, responsiveness to call, and chest rise. Emergency voice guidance will adapt instantly.
-          </p>
-        </div>
+        {/* Step 0: Who needs help? Me / a crewmate */}
+        {stage === 'PATIENT_SELECT' && (
+          <PatientSelectStep
+            currentCrew={crew}
+            allCrew={allCrew}
+            selectedPatient={patient}
+            baselines={patientBaselines}
+            onSelectPatient={(p) => setPatient(p)}
+            onConfirm={handleConfirmPatient}
+          />
+        )}
 
-        {/* Live On-Screen Caption per §3 (v3) */}
-        <div className="p-4 rounded-2xl bg-black/60 border border-red-500/30 text-center">
-          <span className="text-[10px] font-mono uppercase text-red-400 tracking-wider block mb-1">
-            VOICE CAPTION (OFFLINE LOCAL VOICE)
-          </span>
-          <p className="text-sm font-semibold text-slate-100 font-mono">
-            &ldquo;{caption}&rdquo;
-          </p>
-        </div>
+        {/* Step 1: Is person responsive and breathing normally? */}
+        {stage === 'TRIAGE' && patient && (
+          <TriageStep
+            patient={patient}
+            onSelectUnresponsive={handleSelectUnresponsive}
+            onSelectConsciousProtocol={handleSelectConsciousProtocol}
+          />
+        )}
 
-        {/* Huge Glove-Friendly Buttons per §7.11 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <BigButton
-            variant="danger"
-            size="xl"
-            icon={<AlertOctagon size={24} />}
-            onClick={() => handleSpeak('Patient unresponsive. Call crew and CMO immediately. Initiate microgravity CPR coach.')}
-            className="flex-col py-6 min-h-[96px]"
-          >
-            <span className="text-xl font-black">NO · UNRESPONSIVE</span>
-            <span className="text-xs opacity-80 font-normal">Initiates Microgravity CPR &amp; AED Metronome</span>
-          </BigButton>
+        {/* Active Protocols */}
+        {stage === 'PROTOCOL' && patient && (
+          <>
+            {activeEmergencyType === 'CPR' && (
+              <CprCoachProtocol
+                patient={patient}
+                environment={environment}
+                onLogStep={handleLogProtocolStep}
+                speak={speak}
+              />
+            )}
 
-          <BigButton
-            variant="secondary"
-            size="xl"
-            icon={<Heart size={24} className="text-red-400" />}
-            onClick={() => handleSpeak('Patient is conscious. Assessing chest pain, trauma, and respiratory distress symptoms.')}
-            className="flex-col py-6 min-h-[96px] bg-white/10 border-red-500/40 text-white"
-          >
-            <span className="text-xl font-black">YES · CONSCIOUS</span>
-            <span className="text-xs opacity-80 font-normal">Chest Pain / Trauma / Toxic Atmosphere Triage</span>
-          </BigButton>
-        </div>
+            {activeEmergencyType === 'CHEST_PAIN' && (
+              <ChestPainProtocol
+                patient={patient}
+                missionDay={missionDay}
+                baselines={patientBaselines}
+                onLogStep={handleLogProtocolStep}
+                onRecordVitals={handleRecordVitals}
+                speak={speak}
+              />
+            )}
 
-        {/* Voice Speech Synthesis Offline Test */}
-        <div className="p-4 rounded-2xl bg-black/40 border border-red-500/30 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Volume2 className="text-red-400 shrink-0" size={20} />
-            <div className="text-xs text-red-200">
-              <strong>Offline Voice Guidance (Web Speech API):</strong> Uses local offline voice (<code>localService: true</code>) with mandatory on-screen captions.
-            </div>
-          </div>
-          <button
-            onClick={() => handleSpeak('HALO voice synthesis test. Operating completely offline in deep space.')}
-            className="px-4 py-2.5 rounded-xl bg-red-600/40 hover:bg-red-600/70 border border-red-400 text-xs font-mono font-bold shrink-0 text-white"
-          >
-            {testedVoice ? '✓ Audio Tested' : 'Test Speech'}
-          </button>
-        </div>
+            {activeEmergencyType === 'TOXIC_BREATHING' && (
+              <ToxicBreathingProtocol
+                patient={patient}
+                onLogStep={handleLogProtocolStep}
+                speak={speak}
+              />
+            )}
 
-        {/* Protocol Previews */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-          <div className="p-3.5 rounded-xl bg-black/30 border border-white/10 space-y-1">
-            <span className="font-bold text-red-400 font-mono">1. Microgravity CPR</span>
-            <p className="text-[11px] text-slate-300">
-              Evetts-Russomano torso wrap method with 110 bpm audio/visual metronome.
-            </p>
-          </div>
-          <div className="p-3.5 rounded-xl bg-black/30 border border-white/10 space-y-1">
-            <span className="font-bold text-red-400 font-mono">2. Acute Chest Pain</span>
-            <p className="text-[11px] text-slate-300">
-              Structured red-flag symptom capture, telemetry logging, and AED staging.
-            </p>
-          </div>
-          <div className="p-3.5 rounded-xl bg-black/30 border border-white/10 space-y-1">
-            <span className="font-bold text-red-400 font-mono">3. Toxic / SPE Protocol</span>
-            <p className="text-[11px] text-slate-300">
-              Module evacuation, storm shelter timing, and auto-downlinked incident report.
-            </p>
-          </div>
-        </div>
+            {activeEmergencyType === 'SOLAR_STORM' && (
+              <RadiationStormProtocol
+                patient={patient}
+                missionDay={missionDay}
+                onLogStep={handleLogProtocolStep}
+                speak={speak}
+              />
+            )}
+          </>
+        )}
+      </main>
 
-      </div>
-
+      {/* Full-Screen Clinical SBAR Modal / Handover Report (Part C) */}
+      {stage === 'SBAR' && sbarData && (
+        <SbarReportView
+          sbar={sbarData}
+          isPacketQueued={isPacketQueued}
+          onTransmitToGround={handleTransmitToGround}
+          onClose={() => navigate('/')}
+        />
+      )}
     </div>
   );
 };
