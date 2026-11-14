@@ -21,7 +21,11 @@ import {
   transmitDownlinkPacket,
 } from './groundLinkService';
 
-export const GroundLinkView: React.FC = () => {
+export interface GroundLinkViewProps {
+  isSplitView?: boolean;
+}
+
+export const GroundLinkView: React.FC<GroundLinkViewProps> = ({ isSplitView = false }) => {
   const { crew, config, environment } = useMission();
   const [packets, setPackets] = useState<GroundPacket[]>([]);
   const [now, setNow] = useState<number>(Date.now());
@@ -174,15 +178,17 @@ export const GroundLinkView: React.FC = () => {
             <ExternalLink size={14} />
           </a>
 
-          <a
-            href="/split"
-            data-testid="open-split-view-btn"
-            className="h-[46px] px-3.5 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400/50 text-purple-200 text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-md"
-            title="Open side-by-side split screen"
-          >
-            <Split size={14} />
-            <span>SPLIT VIEW</span>
-          </a>
+          {!isSplitView && (
+            <a
+              href="/split"
+              data-testid="open-split-view-btn"
+              className="h-[46px] px-3.5 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400/50 text-purple-200 text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-md"
+              title="Open side-by-side split screen"
+            >
+              <Split size={14} />
+              <span>SPLIT VIEW</span>
+            </a>
+          )}
         </div>
       </div>
 

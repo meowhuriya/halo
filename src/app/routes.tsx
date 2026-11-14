@@ -13,6 +13,7 @@ import { LearnView } from '../features/learn/LearnView';
 import { ValidationView } from '../features/validation/ValidationView';
 import { OnboardingView } from '../features/onboarding/OnboardingView';
 import { GroundConsoleView } from '../ground/GroundConsoleView';
+import { SplitView } from '../ground/SplitView';
 import { useMission } from './MissionContext';
 
 export const AppRoutes: React.FC = () => {
@@ -33,7 +34,13 @@ export const AppRoutes: React.FC = () => {
   }
 
   // If user hasn't completed onboarding yet and is not already on /onboarding, redirect
-  if (!hasProfile && location.pathname !== '/onboarding') {
+  // (Allow direct access to /ground and /split for multi-window and split-screen testing)
+  if (
+    !hasProfile &&
+    location.pathname !== '/onboarding' &&
+    location.pathname !== '/ground' &&
+    location.pathname !== '/split'
+  ) {
     return <Navigate to="/onboarding" replace />;
   }
 
@@ -54,7 +61,8 @@ export const AppRoutes: React.FC = () => {
         <Route path="/ground" element={<GroundConsoleView />} />
       </Route>
 
-      {/* Emergency is full-screen without standard top bar / nav */}
+      {/* Standalone full-screen routes without astronaut bottom nav */}
+      <Route path="/split" element={<SplitView />} />
       <Route path="/emergency" element={<EmergencyView />} />
 
       {/* Fallback */}
