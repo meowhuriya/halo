@@ -40,7 +40,7 @@ export const SplitView: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#05070D] text-slate-100 flex flex-col font-sans" data-testid="split-view">
+    <div className="min-h-screen bg-[#0B1628] text-slate-100 flex flex-col font-sans" data-testid="split-view">
       {/* Top Split View Controller Header */}
       <header className="sticky top-0 z-40 bg-[#070b14]/90 backdrop-blur-xl border-b border-white/10 px-4 py-3 shadow-lg">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">

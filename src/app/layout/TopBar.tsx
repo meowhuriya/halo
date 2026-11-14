@@ -53,13 +53,13 @@ export const TopBar: React.FC = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[#05070D]/85 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[#0B1628]/85 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-4">
           
           {/* Left: Logo & Crew Badge */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <Link to="/" className="flex items-center gap-2 group focus:outline-none">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400/20 to-blue-600/30 border border-cyan-400/40 flex items-center justify-center shadow-[0_0_15px_-3px_rgba(56,225,255,0.3)] group-hover:border-cyan-300 transition-colors">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400/20 to-blue-600/30 border border-cyan-400/40 flex items-center justify-center shadow-[0_0_15px_-3px_rgba(115, 179, 231,0.3)] group-hover:border-cyan-300 transition-colors">
                 <span className="font-mono font-extrabold text-cyan-300 text-sm tracking-wider">H</span>
               </div>
               <div className="hidden md:flex flex-col">
@@ -194,7 +194,7 @@ export const TopBar: React.FC = () => {
                       onClick={() => handleEnvSelect(envId)}
                       className={`text-left p-3 rounded-xl border transition-all ${
                         isSelected
-                          ? 'bg-cyan-500/15 border-cyan-400 text-white shadow-[0_0_15px_-4px_rgba(56,225,255,0.4)]'
+                          ? 'bg-cyan-500/15 border-cyan-400 text-white shadow-[0_0_15px_-4px_rgba(115, 179, 231,0.4)]'
                           : 'bg-white/[0.03] border-white/10 hover:border-white/20 text-slate-300'
                       }`}
                     >

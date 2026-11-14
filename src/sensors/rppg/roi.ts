@@ -230,7 +230,7 @@ export function drawRoiOverlay(
     ctx.fillText(label, cx, cy);
   };
 
-  drawPoly(rois.forehead, 'rgba(56, 225, 255, 1)', 'FOREHEAD');
+  drawPoly(rois.forehead, 'rgba(115, 179, 231, 1)', 'FOREHEAD');
   drawPoly(rois.leftCheek, 'rgba(34, 197, 94, 1)', 'L-CHEEK');
   drawPoly(rois.rightCheek, 'rgba(34, 197, 94, 1)', 'R-CHEEK');
 }

@@ -129,7 +129,7 @@ export const OrbitRing: React.FC<OrbitRingProps> = ({
               cy="72"
               r="56"
               fill="none"
-              stroke={overdueCount > 0 ? '#F59E0B' : '#38E1FF'}
+              stroke={overdueCount > 0 ? '#F59E0B' : '#73B3E7'}
               strokeWidth="4"
               strokeDasharray={circumference}
               strokeDashoffset={dashOffset}
@@ -151,7 +151,7 @@ export const OrbitRing: React.FC<OrbitRingProps> = ({
                   ? '#86EFAC'
                   : effectiveStatus === 'overdue'
                     ? '#FDBA74'
-                    : '#38E1FF';
+                    : '#73B3E7';
 
               return (
                 <g key={task.id ?? `${task.taskType}-${idx}`}>

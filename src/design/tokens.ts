@@ -3,13 +3,13 @@ import React from 'react';
 import type { HealthStatus } from '../data/db';
 
 export const COLORS = {
-  bg: '#05070D',
+  bg: '#0B1628',
   surface: '#0B111E',
   glassFill: 'rgba(255, 255, 255, 0.05)',
   glassBorder: 'rgba(255, 255, 255, 0.10)',
-  glassBorderHover: 'rgba(56, 225, 255, 0.35)',
-  cyan: '#38E1FF',
-  cyanGlow: 'rgba(56, 225, 255, 0.25)',
+  glassBorderHover: 'rgba(115, 179, 231, 0.35)',
+  cyan: '#73B3E7',
+  cyanGlow: 'rgba(115, 179, 231, 0.25)',
   nominal: '#22C55E',
   watch: '#F59E0B',
   alert: '#F97316',

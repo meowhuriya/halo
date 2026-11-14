@@ -167,7 +167,7 @@ export const OnboardingView: React.FC = () => {
     <div className="max-w-4xl mx-auto space-y-8 animate-fade-in py-4">
       
       {/* Top Banner & Quick Demo Loader */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl bg-gradient-to-br from-cyan-950/40 via-white/[0.03] to-blue-950/30 border border-cyan-500/30 shadow-[0_0_30px_-5px_rgba(56,225,255,0.15)]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl bg-gradient-to-br from-cyan-950/40 via-white/[0.03] to-blue-950/30 border border-cyan-500/30 shadow-[0_0_30px_-5px_rgba(115, 179, 231,0.15)]">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-xs font-mono font-semibold uppercase tracking-wider mb-2">
             <Rocket size={13} />
@@ -188,7 +188,7 @@ export const OnboardingView: React.FC = () => {
             icon={<Play size={16} className="text-slate-950 fill-slate-950" />}
             onClick={() => void startTour()}
             data-testid="onboarding-watch-judge-tour-btn"
-            className="shadow-[0_0_20px_rgba(56,225,255,0.4)]"
+            className="shadow-[0_0_20px_rgba(115, 179, 231,0.4)]"
           >
             ▶ Watch HALO save a crew (90 s)
           </BigButton>
@@ -344,7 +344,7 @@ export const OnboardingView: React.FC = () => {
                   onClick={() => handleEnvSelect(envId)}
                   className={`p-5 rounded-2xl border cursor-pointer transition-all duration-200 relative ${
                     isSelected
-                      ? 'bg-cyan-500/15 border-cyan-400 shadow-[0_0_25px_-5px_rgba(56,225,255,0.4)]'
+                      ? 'bg-cyan-500/15 border-cyan-400 shadow-[0_0_25px_-5px_rgba(115, 179, 231,0.4)]'
                       : 'bg-white/[0.03] border-white/10 hover:border-white/20'
                   }`}
                 >

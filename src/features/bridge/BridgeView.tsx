@@ -492,7 +492,7 @@ export const BridgeView: React.FC = () => {
             icon={<Play size={16} className="text-slate-950 fill-slate-950" />}
             onClick={() => void startTour()}
             data-testid="bridge-watch-judge-tour-btn"
-            className="shadow-[0_0_20px_rgba(56,225,255,0.4)]"
+            className="shadow-[0_0_20px_rgba(115, 179, 231,0.4)]"
           >
             ▶ Watch HALO save a crew (90 s)
           </BigButton>

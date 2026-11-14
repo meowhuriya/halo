@@ -774,7 +774,7 @@ export const ScanView: React.FC = () => {
                     return `${i},${y}`;
                   }).join(' ')}
                   fill="none"
-                  stroke="rgba(56, 225, 255, 0.8)"
+                  stroke="rgba(115, 179, 231, 0.8)"
                   strokeWidth="1.5"
                 />
               </svg>

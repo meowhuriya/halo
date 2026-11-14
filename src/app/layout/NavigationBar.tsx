@@ -48,7 +48,7 @@ export const NavigationBar: React.FC = () => {
               className={({ isActive }) =>
                 `flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 select-none ${
                   isActive
-                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 shadow-[0_0_15px_-4px_rgba(56,225,255,0.4)]'
+                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 shadow-[0_0_15px_-4px_rgba(115, 179, 231,0.4)]'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] border border-transparent'
                 }`
               }

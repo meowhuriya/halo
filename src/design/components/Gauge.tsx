@@ -16,7 +16,7 @@ export const Gauge: React.FC<GaugeProps> = ({
   max,
   unit,
   label,
-  color = '#38E1FF',
+  color = '#73B3E7',
   size = 140,
 }) => {
   const percentage = Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100));

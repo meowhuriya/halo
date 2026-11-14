@@ -166,7 +166,7 @@ export const CprCoachProtocol: React.FC<CprCoachProtocolProps> = ({
             data-testid="cpr-visual-pulse-indicator"
             className={`w-44 h-44 sm:w-52 sm:h-52 rounded-full border-4 flex flex-col items-center justify-center transition-all duration-100 select-none ${
               phase === 'breath'
-                ? 'bg-cyan-950/80 border-cyan-400 shadow-[0_0_40px_rgba(56,225,255,0.6)]'
+                ? 'bg-cyan-950/80 border-cyan-400 shadow-[0_0_40px_rgba(115, 179, 231,0.6)]'
                 : pulseActive
                 ? 'scale-105 bg-red-600 border-white shadow-[0_0_50px_rgba(239,68,68,1)]'
                 : 'bg-red-950/60 border-red-500/70 shadow-[0_0_25px_rgba(239,68,68,0.4)]'

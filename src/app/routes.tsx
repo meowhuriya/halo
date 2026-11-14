@@ -22,7 +22,7 @@ export const AppRoutes: React.FC = () => {
 
   if (isLoading && !hasProfile) {
     return (
-      <div className="min-h-screen bg-[#05070D] flex flex-col items-center justify-center space-y-4">
+      <div className="min-h-screen bg-[#0B1628] flex flex-col items-center justify-center space-y-4">
         <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-400 flex items-center justify-center animate-spin">
           <span className="font-mono font-extrabold text-cyan-300">H</span>
         </div>

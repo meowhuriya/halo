@@ -32,7 +32,7 @@ export const BigButton: React.FC<BigButtonProps> = ({
 
   const variantStyles = {
     primary:
-      'bg-cyan-400 text-slate-950 hover:bg-cyan-300 active:bg-cyan-200 shadow-[0_0_25px_-4px_rgba(56,225,255,0.4)] border border-cyan-300/60',
+      'bg-cyan-400 text-slate-950 hover:bg-cyan-300 active:bg-cyan-200 shadow-[0_0_25px_-4px_rgba(115, 179, 231,0.4)] border border-cyan-300/60',
     secondary:
       'bg-white/10 text-slate-100 hover:bg-white/15 active:bg-white/20 border border-white/20 backdrop-blur-md shadow-lg',
     glass:
@@ -52,7 +52,7 @@ export const BigButton: React.FC<BigButtonProps> = ({
       whileTap={disabled ? undefined : { scale: 0.97 }}
       transition={{ duration: 0.12 }}
       disabled={disabled}
-      className={`relative inline-flex items-center justify-center gap-3 rounded-2xl select-none transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070D] ${sizeStyles} ${variantStyles} ${disabledStyles} ${
+      className={`relative inline-flex items-center justify-center gap-3 rounded-2xl select-none transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B1628] ${sizeStyles} ${variantStyles} ${disabledStyles} ${
         fullWidth ? 'w-full' : ''
       } ${className}`}
       {...props}

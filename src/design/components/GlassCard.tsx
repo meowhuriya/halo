@@ -29,13 +29,13 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   const variantStyles = {
     default: 'bg-white/[0.04] border-white/10 text-slate-100',
     subtle: 'bg-white/[0.02] border-white/5 text-slate-200',
-    cyan: 'bg-cyan-500/[0.04] border-cyan-400/25 text-slate-100 shadow-[0_0_20px_-5px_rgba(56,225,255,0.15)]',
+    cyan: 'bg-cyan-500/[0.04] border-cyan-400/25 text-slate-100 shadow-[0_0_20px_-5px_rgba(115, 179, 231,0.15)]',
     interactive: 'bg-white/[0.04] border-white/10 hover:border-cyan-400/40 hover:bg-white/[0.06] transition-all cursor-pointer',
     alert: 'bg-orange-500/[0.05] border-orange-500/30 text-slate-100',
     critical: 'bg-red-500/[0.08] border-red-500/40 text-slate-100 shadow-[0_0_25px_-5px_rgba(239,68,68,0.25)]',
   }[variant];
 
-  const glowStyles = glow ? 'shadow-[0_0_25px_-5px_rgba(56,225,255,0.2)] border-cyan-400/40' : '';
+  const glowStyles = glow ? 'shadow-[0_0_25px_-5px_rgba(115, 179, 231,0.2)] border-cyan-400/40' : '';
 
   return (
     <motion.div

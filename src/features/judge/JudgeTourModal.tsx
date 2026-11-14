@@ -168,7 +168,7 @@ export const JudgeTourModal: React.FC = () => {
             width: targetRect.width + padding * 2,
             height: targetRect.height + padding * 2,
           }}
-          className="pointer-events-none z-40 border-2 border-cyan-400 rounded-2xl shadow-[0_0_35px_rgba(56,225,255,0.7)] animate-pulse"
+          className="pointer-events-none z-40 border-2 border-cyan-400 rounded-2xl shadow-[0_0_35px_rgba(115, 179, 231,0.7)] animate-pulse"
         >
           {/* Spotlight Title Tag */}
           <div className="absolute -top-7 left-0 max-w-[90vw] truncate px-2.5 py-0.5 rounded-lg bg-cyan-950/95 border border-cyan-400 text-[10px] font-mono text-cyan-200 font-extrabold uppercase tracking-wider shadow-lg">
@@ -269,8 +269,8 @@ export const JudgeTourModal: React.FC = () => {
           className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xl flex items-center justify-center p-4"
           data-testid="judge-end-card"
         >
-          <div className="max-w-xl w-full rounded-3xl bg-[#090d16] border border-cyan-400/50 p-6 sm:p-8 space-y-6 shadow-[0_0_60px_rgba(56,225,255,0.25)] text-center animate-scale-up">
-            <div className="w-16 h-16 rounded-3xl bg-cyan-500/20 border border-cyan-400 mx-auto flex items-center justify-center text-cyan-300 shadow-[0_0_20px_rgba(56,225,255,0.4)]">
+          <div className="max-w-xl w-full rounded-3xl bg-[#090d16] border border-cyan-400/50 p-6 sm:p-8 space-y-6 shadow-[0_0_60px_rgba(115, 179, 231,0.25)] text-center animate-scale-up">
+            <div className="w-16 h-16 rounded-3xl bg-cyan-500/20 border border-cyan-400 mx-auto flex items-center justify-center text-cyan-300 shadow-[0_0_20px_rgba(115, 179, 231,0.4)]">
               <Sparkles size={32} />
             </div>
 
@@ -340,7 +340,7 @@ export const JudgeTourModal: React.FC = () => {
                   navigate('/scan');
                 }}
                 data-testid="judge-try-scan-btn"
-                className="w-full text-base font-extrabold shadow-[0_0_30px_rgba(56,225,255,0.4)]"
+                className="w-full text-base font-extrabold shadow-[0_0_30px_rgba(115, 179, 231,0.4)]"
               >
                 Try it yourself: scan your heart rate →
               </BigButton>

@@ -234,7 +234,7 @@ export const GroundLinkView: React.FC<GroundLinkViewProps> = ({ isSplitView = fa
       >
         <div className="w-full flex items-center justify-between px-4 sm:px-8 mb-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-cyan-500/20 border border-cyan-400 flex items-center justify-center text-lg shadow-[0_0_15px_rgba(56,225,255,0.4)]">
+            <div className="w-10 h-10 rounded-2xl bg-cyan-500/20 border border-cyan-400 flex items-center justify-center text-lg shadow-[0_0_15px_rgba(115, 179, 231,0.4)]">
               🚀
             </div>
             <div>
@@ -268,7 +268,7 @@ export const GroundLinkView: React.FC<GroundLinkViewProps> = ({ isSplitView = fa
           <svg viewBox="0 0 500 100" className="w-full h-full overflow-visible">
             <defs>
               <linearGradient id="arcGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#38E1FF" />
+                <stop offset="0%" stopColor="#73B3E7" />
                 <stop offset="100%" stopColor="#3B82F6" />
               </linearGradient>
             </defs>
@@ -293,8 +293,8 @@ export const GroundLinkView: React.FC<GroundLinkViewProps> = ({ isSplitView = fa
                   const y = (1 - t) * (1 - t) * 80 + 2 * (1 - t) * t * 15 + t * t * 80;
                   return (
                     <g transform={`translate(${x}, ${y})`}>
-                      <circle r="9" fill="#38E1FF" className="animate-ping opacity-75" />
-                      <circle r="6" fill="#38E1FF" stroke="#FFFFFF" strokeWidth="2" />
+                      <circle r="9" fill="#73B3E7" className="animate-ping opacity-75" />
+                      <circle r="6" fill="#73B3E7" stroke="#FFFFFF" strokeWidth="2" />
                       <text
                         y="-12"
                         textAnchor="middle"

@@ -47,12 +47,12 @@ function getRegionVisual(status: HealthStatus | null): {
 } {
   if (status === null) {
     return {
-      stroke: '#38E1FF',
-      fill: 'rgba(56, 225, 255, 0.14)',
-      glow: 'rgba(56, 225, 255, 0.35)',
+      stroke: '#73B3E7',
+      fill: 'rgba(115, 179, 231, 0.14)',
+      glow: 'rgba(115, 179, 231, 0.35)',
       badgeText: '#67E8F9',
-      badgeBg: 'rgba(56, 225, 255, 0.10)',
-      badgeBorder: 'rgba(56, 225, 255, 0.30)',
+      badgeBg: 'rgba(115, 179, 231, 0.10)',
+      badgeBorder: 'rgba(115, 179, 231, 0.30)',
       label: 'NO DATA',
       StatusIcon: HelpCircle,
       isCritical: false,
@@ -136,7 +136,7 @@ export const DigitalTwinSvg: React.FC<DigitalTwinSvgProps> = ({
     <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
       {/* Left: Layered Anatomical Hologram SVG */}
       <div className="md:col-span-6 flex justify-center">
-        <div className="relative w-full max-w-[300px] aspect-[340/480] flex items-center justify-center rounded-3xl bg-gradient-to-b from-cyan-500/[0.05] via-slate-950/60 to-blue-950/20 border border-white/10 p-3 shadow-[inset_0_0_40px_rgba(56,225,255,0.06)]">
+        <div className="relative w-full max-w-[300px] aspect-[340/480] flex items-center justify-center rounded-3xl bg-gradient-to-b from-cyan-500/[0.05] via-slate-950/60 to-blue-950/20 border border-white/10 p-3 shadow-[inset_0_0_40px_rgba(115, 179, 231,0.06)]">
           <svg
             viewBox="0 0 340 480"
             className="w-full h-full select-none overflow-visible"
@@ -145,15 +145,15 @@ export const DigitalTwinSvg: React.FC<DigitalTwinSvgProps> = ({
           >
             <defs>
               <radialGradient id="hudBgAura" cx="50%" cy="46%" r="52%">
-                <stop offset="0%" stopColor="rgba(56, 225, 255, 0.15)" />
-                <stop offset="65%" stopColor="rgba(56, 225, 255, 0.04)" />
+                <stop offset="0%" stopColor="rgba(115, 179, 231, 0.15)" />
+                <stop offset="65%" stopColor="rgba(115, 179, 231, 0.04)" />
                 <stop offset="100%" stopColor="rgba(5, 7, 13, 0)" />
               </radialGradient>
 
               <linearGradient id="bodyShellGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(56, 225, 255, 0.14)" />
+                <stop offset="0%" stopColor="rgba(115, 179, 231, 0.14)" />
                 <stop offset="50%" stopColor="rgba(15, 23, 42, 0.55)" />
-                <stop offset="100%" stopColor="rgba(56, 225, 255, 0.08)" />
+                <stop offset="100%" stopColor="rgba(115, 179, 231, 0.08)" />
               </linearGradient>
 
               <filter id="regionGlow" x="-40%" y="-40%" width="180%" height="180%">
@@ -180,7 +180,7 @@ export const DigitalTwinSvg: React.FC<DigitalTwinSvgProps> = ({
               cy="240"
               r="142"
               fill="none"
-              stroke="rgba(56, 225, 255, 0.12)"
+              stroke="rgba(115, 179, 231, 0.12)"
               strokeWidth="1"
               strokeDasharray="4 6"
               pointerEvents="none"
@@ -190,7 +190,7 @@ export const DigitalTwinSvg: React.FC<DigitalTwinSvgProps> = ({
               y1="240"
               x2="315"
               y2="240"
-              stroke="rgba(56,225,255,0.08)"
+              stroke="rgba(115, 179, 231,0.08)"
               strokeDasharray="3 5"
               pointerEvents="none"
             />
@@ -199,7 +199,7 @@ export const DigitalTwinSvg: React.FC<DigitalTwinSvgProps> = ({
               y1="18"
               x2="170"
               y2="465"
-              stroke="rgba(56,225,255,0.1)"
+              stroke="rgba(115, 179, 231,0.1)"
               strokeDasharray="2 6"
               pointerEvents="none"
             />
@@ -471,8 +471,8 @@ export const DigitalTwinSvg: React.FC<DigitalTwinSvgProps> = ({
                 stroke={eyesVis.stroke}
                 strokeWidth={selectedRegionId === 'eyes' ? 2.4 : 1.5}
               />
-              <circle cx="158" cy="70" r="4.5" fill="#05070D" stroke={eyesVis.stroke} strokeWidth="1.8" />
-              <circle cx="182" cy="70" r="4.5" fill="#05070D" stroke={eyesVis.stroke} strokeWidth="1.8" />
+              <circle cx="158" cy="70" r="4.5" fill="#0B1628" stroke={eyesVis.stroke} strokeWidth="1.8" />
+              <circle cx="182" cy="70" r="4.5" fill="#0B1628" stroke={eyesVis.stroke} strokeWidth="1.8" />
               <circle cx="158" cy="70" r="1.8" fill={eyesVis.stroke} />
               <circle cx="182" cy="70" r="1.8" fill={eyesVis.stroke} />
             </g>
@@ -501,7 +501,7 @@ export const DigitalTwinSvg: React.FC<DigitalTwinSvgProps> = ({
                 onClick={() => onSelectRegion(region.id)}
                 className={`min-h-[56px] w-full px-3.5 py-2.5 rounded-2xl border text-left transition-all flex items-center justify-between gap-2 cursor-pointer ${
                   isSelected
-                    ? 'bg-cyan-500/15 border-cyan-400 shadow-[0_0_20px_rgba(56,225,255,0.22)]'
+                    ? 'bg-cyan-500/15 border-cyan-400 shadow-[0_0_20px_rgba(115, 179, 231,0.22)]'
                     : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.08] hover:border-white/25'
                 } ${visual.isCritical ? 'animate-pulse' : ''}`}
               >

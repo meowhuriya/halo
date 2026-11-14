@@ -219,7 +219,7 @@ export const TrendsView: React.FC = () => {
     };
 
     const status = payload?.status || 'NOMINAL';
-    const color = statusColors[status] || '#38e1ff';
+    const color = statusColors[status] || '#73B3E7';
     const isAlert = status === 'ALERT' || status === 'CRITICAL';
 
     return (
@@ -286,7 +286,7 @@ export const TrendsView: React.FC = () => {
               data-testid={`indicator-${ind.id}-btn`}
               className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
                 isSelected
-                  ? 'bg-cyan-500/20 border-cyan-400/60 shadow-[0_0_15px_rgba(56,225,255,0.15)]'
+                  ? 'bg-cyan-500/20 border-cyan-400/60 shadow-[0_0_15px_rgba(115, 179, 231,0.15)]'
                   : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.05] hover:border-white/10'
               }`}
             >
@@ -436,9 +436,9 @@ export const TrendsView: React.FC = () => {
                   <ReferenceArea
                     y1={baselineBounds.lower}
                     y2={baselineBounds.upper}
-                    fill="#38e1ff"
+                    fill="#73B3E7"
                     fillOpacity={0.08}
-                    stroke="#38e1ff"
+                    stroke="#73B3E7"
                     strokeOpacity={0.3}
                     strokeDasharray="3 3"
                   />
@@ -449,7 +449,7 @@ export const TrendsView: React.FC = () => {
                   type="monotone"
                   dataKey="value"
                   name={activeConfig.id === 'blood_pressure' ? 'Systolic' : activeConfig.label}
-                  stroke="#38e1ff"
+                  stroke="#73B3E7"
                   strokeWidth={2.5}
                   dot={renderStatusDot}
                   activeDot={{ r: 6, stroke: '#ffffff', strokeWidth: 2 }}

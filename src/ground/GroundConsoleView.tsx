@@ -354,7 +354,7 @@ export const GroundConsoleView: React.FC<GroundConsoleViewProps> = ({ isSplitVie
             <defs>
               <linearGradient id="groundArcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.4" />
-                <stop offset="50%" stopColor="#38e1ff" stopOpacity="0.8" />
+                <stop offset="50%" stopColor="#73B3E7" stopOpacity="0.8" />
                 <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.4" />
               </linearGradient>
             </defs>
@@ -390,8 +390,8 @@ export const GroundConsoleView: React.FC<GroundConsoleViewProps> = ({ isSplitVie
                   transition: 'transform 1s linear',
                 }}
               >
-                <circle cx="0" cy="0" r="10" fill="#38e1ff" opacity="0.3" className="animate-ping" />
-                <circle cx="0" cy="0" r="6" fill="#38e1ff" stroke="#ffffff" strokeWidth="2" />
+                <circle cx="0" cy="0" r="10" fill="#73B3E7" opacity="0.3" className="animate-ping" />
+                <circle cx="0" cy="0" r="6" fill="#73B3E7" stroke="#ffffff" strokeWidth="2" />
               </g>
             )}
           </svg>
@@ -425,7 +425,7 @@ export const GroundConsoleView: React.FC<GroundConsoleViewProps> = ({ isSplitVie
                     onClick={() => setSelectedCrewId(member.id || 1)}
                     className={`w-full text-left p-3 rounded-2xl border transition-all ${
                       isSelected
-                        ? 'bg-blue-600/20 border-cyan-400/60 shadow-[0_0_15px_rgba(56,225,255,0.15)]'
+                        ? 'bg-blue-600/20 border-cyan-400/60 shadow-[0_0_15px_rgba(115, 179, 231,0.15)]'
                         : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.05] hover:border-white/15'
                     }`}
                   >
@@ -552,7 +552,7 @@ export const GroundConsoleView: React.FC<GroundConsoleViewProps> = ({ isSplitVie
                     <Tooltip
                       contentStyle={{
                         backgroundColor: '#0a101f',
-                        border: '1px solid rgba(56,225,255,0.3)',
+                        border: '1px solid rgba(115, 179, 231,0.3)',
                         borderRadius: '0.75rem',
                         fontSize: '11px',
                         fontFamily: 'monospace',
@@ -574,9 +574,9 @@ export const GroundConsoleView: React.FC<GroundConsoleViewProps> = ({ isSplitVie
                       type="monotone"
                       dataKey="value"
                       name={activeChartIndicator}
-                      stroke="#38e1ff"
+                      stroke="#73B3E7"
                       strokeWidth={2}
-                      dot={{ r: 3, fill: '#38e1ff' }}
+                      dot={{ r: 3, fill: '#73B3E7' }}
                       activeDot={{ r: 5, stroke: '#ffffff', strokeWidth: 2 }}
                     />
                     {activeChartIndicator === 'blood_pressure' && (

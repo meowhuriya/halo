@@ -55,7 +55,7 @@ export const RegionSideSheet: React.FC<RegionSideSheetProps> = ({
           ? '#F59E0B'
           : region.status === 'NOMINAL'
             ? '#22C55E'
-            : '#38E1FF';
+            : '#73B3E7';
 
   return (
     <div
@@ -70,7 +70,7 @@ export const RegionSideSheet: React.FC<RegionSideSheetProps> = ({
     >
       <div className="relative w-full max-w-lg h-full bg-[#070B14] border-l border-cyan-500/25 shadow-[0_0_50px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden">
         {/* Top Sticky Header */}
-        <div className="p-4 sm:p-5 border-b border-white/10 flex items-start justify-between gap-3 bg-[#05070D]/90 shrink-0">
+        <div className="p-4 sm:p-5 border-b border-white/10 flex items-start justify-between gap-3 bg-[#0B1628]/90 shrink-0">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-1">
               <span className="text-[11px] font-mono uppercase tracking-widest text-cyan-300">
@@ -183,7 +183,7 @@ export const RegionSideSheet: React.FC<RegionSideSheetProps> = ({
                     <Tooltip
                       contentStyle={{
                         backgroundColor: '#0B111E',
-                        borderColor: 'rgba(56,225,255,0.3)',
+                        borderColor: 'rgba(115, 179, 231,0.3)',
                         borderRadius: '12px',
                         fontSize: '12px',
                         color: '#F1F5F9',
@@ -257,7 +257,7 @@ export const RegionSideSheet: React.FC<RegionSideSheetProps> = ({
         </div>
 
         {/* Sticky Footer Primary Action */}
-        <div className="p-4 border-t border-white/10 bg-[#05070D]/95 shrink-0">
+        <div className="p-4 border-t border-white/10 bg-[#0B1628]/95 shrink-0">
           {region.id === 'skin' && onJumpToRadiation ? (
             <BigButton
               variant="primary"

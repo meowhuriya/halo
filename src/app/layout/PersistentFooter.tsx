@@ -3,7 +3,7 @@ import { HardDrive, WifiOff } from 'lucide-react';
 
 export const PersistentFooter: React.FC = () => {
   return (
-    <footer className="w-full border-t border-white/5 bg-[#05070D]/90 py-4 px-4 sm:px-8 mt-auto backdrop-blur-md">
+    <footer className="w-full border-t border-white/5 bg-[#0B1628]/90 py-4 px-4 sm:px-8 mt-auto backdrop-blur-md">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
         
         {/* Left: Non-negotiable mandatory disclaimer per §2.8 */}

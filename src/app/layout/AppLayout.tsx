@@ -7,7 +7,7 @@ import { PersistentFooter } from './PersistentFooter';
 
 export const AppLayout: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-[#05070D] text-slate-100 relative">
+    <div className="min-h-screen flex flex-col bg-[#0B1628] text-slate-100 relative">
       <TopBar />
       <NavigationBar />
       

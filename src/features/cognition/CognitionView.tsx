@@ -433,7 +433,7 @@ export const CognitionView: React.FC = () => {
       <GlassCard variant="default" padded="lg" className="relative overflow-hidden bg-black/50 border-cyan-500/20">
         {phase === 'idle' && (
           <div className="max-w-lg mx-auto text-center space-y-6 py-4">
-            <div className="w-20 h-20 rounded-3xl bg-cyan-500/10 border border-cyan-400/40 flex items-center justify-center mx-auto text-cyan-300 shadow-[0_0_30px_rgba(56,225,255,0.2)]">
+            <div className="w-20 h-20 rounded-3xl bg-cyan-500/10 border border-cyan-400/40 flex items-center justify-center mx-auto text-cyan-300 shadow-[0_0_30px_rgba(115, 179, 231,0.2)]">
               <Clock size={36} className={prefersReducedMotion ? '' : 'animate-pulse'} />
             </div>
 
@@ -532,7 +532,7 @@ export const CognitionView: React.FC = () => {
               }}
               className={`min-h-[260px] sm:min-h-[300px] w-full rounded-3xl border-2 flex flex-col items-center justify-center select-none touch-manipulation cursor-pointer transition-colors ${
                 stimulusActive
-                  ? 'border-cyan-400 bg-cyan-500/[0.12] shadow-[0_0_40px_rgba(56,225,255,0.25)]'
+                  ? 'border-cyan-400 bg-cyan-500/[0.12] shadow-[0_0_40px_rgba(115, 179, 231,0.25)]'
                   : 'border-white/15 bg-[#070B14] hover:border-white/25'
               }`}
             >
@@ -665,7 +665,7 @@ export const CognitionView: React.FC = () => {
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#0B111E',
-                    borderColor: 'rgba(56,225,255,0.3)',
+                    borderColor: 'rgba(115, 179, 231,0.3)',
                     borderRadius: '12px',
                     fontSize: '12px',
                   }}
@@ -682,9 +682,9 @@ export const CognitionView: React.FC = () => {
                   type="monotone"
                   dataKey="speed"
                   name="Mean Speed (1/s)"
-                  stroke="#38E1FF"
+                  stroke="#73B3E7"
                   strokeWidth={2.5}
-                  dot={{ r: 4, fill: '#38E1FF' }}
+                  dot={{ r: 4, fill: '#73B3E7' }}
                 />
               </LineChart>
             </ResponsiveContainer>
