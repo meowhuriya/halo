@@ -48,6 +48,9 @@ describe('Ground Console & Split Link Telemetry (§7.12)', () => {
     expect(calculatePacketProgress(start, end, 175000)).toBe(75);
     expect(calculatePacketProgress(start, end, 200000)).toBe(100);
     expect(calculatePacketProgress(start, end, 250000)).toBe(100); // clamped at 100%
+
+    expect(formatRemainingSeconds(65000)).toBe('1 min 05 s');
+    expect(formatRemainingSeconds(25000)).toBe('25 s');
   });
 
   it('delivers uplink reply to ship inbox upon arrival timestamp passing', async () => {
