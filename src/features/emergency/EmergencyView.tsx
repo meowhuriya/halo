@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMission } from '../../app/MissionContext';
 import { db, type CrewMember, type PersonalBaseline } from '../../data/db';
 import { getLocalVoice, speakOffline } from '../../utils/speech';
@@ -33,10 +33,22 @@ export const EmergencyView: React.FC = () => {
   const [startedAt] = useState<number>(Date.now());
   const oneWayDelaySeconds = config?.oneWayDelaySeconds ?? environment.defaultDelaySeconds;
   const missionDay = config?.missionDay ?? 1;
+  const [searchParams] = useSearchParams();
+  const isSimulatedTour = searchParams.get('simulated') === 'true';
 
   // Patient & Medical Record Data
   const [patient, setPatient] = useState<CrewMember | null>(crew || allCrew[0] || null);
   const [patientBaselines, setPatientBaselines] = useState<PersonalBaseline[]>([]);
+
+  // Hook for Judge Mode Step 5: simulated crewmate chest pain / CPR coach preview
+  useEffect(() => {
+    if (isSimulatedTour && allCrew.length > 1) {
+      const crewmate = allCrew.find((c) => !c.isCurrent) || allCrew[1];
+      setPatient(crewmate);
+      setStage('PROTOCOL');
+      setActiveEmergencyType('CPR');
+    }
+  }, [isSimulatedTour, allCrew]);
 
   // Protocol Execution Log & Telemetry Timeline
   const [protocolSteps, setProtocolSteps] = useState<Array<{ timestamp: number; step: string }>>([]);

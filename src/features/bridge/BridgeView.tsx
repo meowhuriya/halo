@@ -14,8 +14,10 @@ import {
   ShieldAlert,
   Sparkles,
   X,
+  Play,
 } from 'lucide-react';
 import { useMission } from '../../app/MissionContext';
+import { useJudgeTour } from '../judge/JudgeContext';
 import { formatCommDelay } from '../../config/environments';
 import { classifyRadiation, maxStatus } from '../../config/thresholds';
 import {
@@ -71,6 +73,7 @@ export const BridgeView: React.FC = () => {
     loadDemo,
     refreshMission,
   } = useMission();
+  const { startTour, isTourActive, currentStepIndex } = useJudgeTour();
 
   // Telemetry state loaded from Dexie
   const [readings, setReadings] = useState<HealthReading[]>([]);
@@ -234,6 +237,31 @@ export const BridgeView: React.FC = () => {
       });
     }
   }, [isLoadingData, overdueTasks]);
+
+  // Judge Mode Step 2 animation: readiness ring animates from day 110 value (92) down to today's value
+  const [animatedScore, setAnimatedScore] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (isTourActive && currentStepIndex === 1) {
+      // Step 2 is active: animate from 92 down to readiness.score
+      setAnimatedScore(92);
+      const timer = setTimeout(() => {
+        setAnimatedScore(readiness.score);
+      }, 700);
+      return () => clearTimeout(timer);
+    } else {
+      setAnimatedScore(null);
+    }
+  }, [isTourActive, currentStepIndex, readiness.score]);
+
+  // Judge Mode Step 3: open Eyes region side sheet
+  useEffect(() => {
+    if (isTourActive && currentStepIndex === 2) {
+      setSelectedRegionId('eyes');
+    } else if (isTourActive && currentStepIndex !== 2 && selectedRegionId === 'eyes') {
+      setSelectedRegionId(null);
+    }
+  }, [isTourActive, currentStepIndex, selectedRegionId]);
 
   const handleManualReminder = useCallback(async () => {
     const dueOrOverdue = orbitRingTasks.filter(
@@ -457,14 +485,26 @@ export const BridgeView: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 shrink-0">
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <BigButton
+            variant="primary"
+            size="md"
+            icon={<Play size={16} className="text-slate-950 fill-slate-950" />}
+            onClick={() => void startTour()}
+            data-testid="bridge-watch-judge-tour-btn"
+            className="shadow-[0_0_20px_rgba(56,225,255,0.4)]"
+          >
+            ▶ Watch HALO save a crew (90 s)
+          </BigButton>
+
           <Link to="/scan">
-            <BigButton variant="primary" size="md" icon={<Camera size={18} />}>
+            <BigButton variant="secondary" size="md" icon={<Camera size={18} />}>
               Camera Scan (rPPG)
             </BigButton>
           </Link>
+
           <BigButton
-            variant="secondary"
+            variant="glass"
             size="md"
             icon={<Sparkles size={17} className="text-cyan-400" />}
             onClick={async () => {
@@ -473,7 +513,7 @@ export const BridgeView: React.FC = () => {
             }}
             data-testid="bridge-load-demo-btn"
           >
-            {isSimulatedMission ? 'Reset Demo Mission' : 'Load Demo Mission'}
+            {isSimulatedMission ? 'Reset Demo' : 'Load Demo'}
           </BigButton>
         </div>
       </div>
@@ -568,7 +608,7 @@ export const BridgeView: React.FC = () => {
           {/* RIGHT COLUMN (5 cols): Readiness + Alerts + Orbit Ring + Radiation/SPE + Ground */}
           <div className="lg:col-span-5 space-y-6">
             {/* 1. Readiness Score & Breakdown (§7.9) */}
-            <GlassCard variant="default" padded="md" className="space-y-4">
+            <GlassCard variant="default" padded="md" className="space-y-4" data-testid="readiness-card">
               <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0">
                   <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">
@@ -583,7 +623,7 @@ export const BridgeView: React.FC = () => {
                   </div>
                 </div>
 
-                <ReadinessRing score={readiness.score} size="lg" />
+                <ReadinessRing score={animatedScore ?? readiness.score} size="lg" />
               </div>
 
               {/* Visible Readiness Breakdown List (§7.9 & §8 Phase 5) */}

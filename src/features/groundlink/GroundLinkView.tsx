@@ -229,6 +229,7 @@ export const GroundLinkView: React.FC<GroundLinkViewProps> = ({ isSplitView = fa
       <GlassCard
         variant="default"
         padded="lg"
+        data-testid="groundlink-arc"
         className="flex flex-col items-center justify-center py-6 relative overflow-hidden bg-black/70 border-cyan-500/30"
       >
         <div className="w-full flex items-center justify-between px-4 sm:px-8 mb-4">

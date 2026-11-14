@@ -9,10 +9,12 @@ import {
   Activity, 
   CheckCircle, 
   Info,
-  Radio
+  Radio,
+  Play
 } from 'lucide-react';
 import { db } from '../../data/db';
 import { useMission } from '../../app/MissionContext';
+import { useJudgeTour } from '../judge/JudgeContext';
 import { ENVIRONMENTS, formatCommDelay, type EnvironmentId } from '../../config/environments';
 import { GlassCard } from '../../design/components/GlassCard';
 import { BigButton } from '../../design/components/BigButton';
@@ -20,6 +22,7 @@ import { BigButton } from '../../design/components/BigButton';
 export const OnboardingView: React.FC = () => {
   const navigate = useNavigate();
   const { refreshMission, loadDemo, crew: existingCrew, config: existingConfig } = useMission();
+  const { startTour } = useJudgeTour();
 
   // Form states
   const [name, setName] = useState(existingCrew?.name || 'Dr. Alex Vance');
@@ -178,16 +181,29 @@ export const OnboardingView: React.FC = () => {
           </p>
         </div>
 
-        <BigButton
-          variant="primary"
-          size="md"
-          icon={<Sparkles size={18} className="text-slate-950 animate-spin-slow" />}
-          onClick={handleLoadDemo}
-          disabled={loadingDemo}
-          className="shrink-0"
-        >
-          {loadingDemo ? 'Loading Ares Transit...' : '▶ Load Demo Mission'}
-        </BigButton>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
+          <BigButton
+            variant="primary"
+            size="md"
+            icon={<Play size={16} className="text-slate-950 fill-slate-950" />}
+            onClick={() => void startTour()}
+            data-testid="onboarding-watch-judge-tour-btn"
+            className="shadow-[0_0_20px_rgba(56,225,255,0.4)]"
+          >
+            ▶ Watch HALO save a crew (90 s)
+          </BigButton>
+
+          <BigButton
+            variant="secondary"
+            size="md"
+            icon={<Sparkles size={17} className="text-cyan-400" />}
+            onClick={handleLoadDemo}
+            disabled={loadingDemo}
+            data-testid="onboarding-load-demo-btn"
+          >
+            {loadingDemo ? 'Loading...' : 'Load Demo Mission'}
+          </BigButton>
+        </div>
       </div>
 
       <form onSubmit={handleSaveAndStart} className="space-y-8">
