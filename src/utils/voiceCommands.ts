@@ -48,7 +48,7 @@ interface SpeechRecognitionLike {
   continuous: boolean;
   interimResults: boolean;
   maxAlternatives: number;
-  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  onresult: ((e: { results: ArrayLike<unknown> }) => void) | null;
   onend: (() => void) | null;
   onerror: ((e: { error?: string }) => void) | null;
   start: () => void;
@@ -67,16 +67,30 @@ export interface VoiceListener {
   stop: () => void;
 }
 
+export interface VoiceListenerOptions {
+  /** Final transcript of one utterance. */
+  onTranscript: (transcript: string) => void;
+  /** Live partial text while the person is still speaking. */
+  onInterim?: (partial: string) => void;
+  onStateChange?: (listening: boolean) => void;
+  /** Keep listening after each result (wake-word / hands-free modes). Default false. */
+  continuous?: boolean;
+}
+
 /**
- * Create a listener that keeps listening and reports each final transcript.
- * The caller decides what to do with it (and pauses it while HALO speaks,
- * so HALO doesn't hear itself).
+ * Create a listener. Chrome's recogniser is reliable for short, expected
+ * phrases, so callers match transcripts against an intent table.
  */
 export function createVoiceListener(
-  onTranscript: (transcript: string) => void,
-  onStateChange?: (listening: boolean) => void
+  onTranscriptOrOpts: ((transcript: string) => void) | VoiceListenerOptions,
+  onStateChangeLegacy?: (listening: boolean) => void
 ): VoiceListener | null {
   if (!isVoiceCommandSupported()) return null;
+  const opts: VoiceListenerOptions =
+    typeof onTranscriptOrOpts === 'function'
+      ? { onTranscript: onTranscriptOrOpts, onStateChange: onStateChangeLegacy }
+      : onTranscriptOrOpts;
+
   const w = window as unknown as { SpeechRecognition?: RecognitionCtor; webkitSpeechRecognition?: RecognitionCtor };
   const Ctor = (w.SpeechRecognition || w.webkitSpeechRecognition)!;
 
@@ -88,29 +102,33 @@ export function createVoiceListener(
     try {
       rec = new Ctor();
       rec.lang = 'en-US';
-      rec.continuous = false;
-      rec.interimResults = false;
+      rec.continuous = Boolean(opts.continuous);
+      rec.interimResults = true;
       rec.maxAlternatives = 3;
       rec.onresult = (e) => {
-        const alts = e.results[0];
-        for (let i = 0; i < alts.length; i++) {
-          const text = alts[i]?.transcript ?? '';
-          if (text) {
-            onTranscript(text);
-            if (matchIntent(text)) break;
+        const results = e.results as unknown as ArrayLike<{ isFinal?: boolean; 0: { transcript: string }; length: number } & ArrayLike<{ transcript: string }>>;
+        let interim = '';
+        for (let i = 0; i < results.length; i++) {
+          const r = results[i];
+          const text = r[0]?.transcript ?? '';
+          if (r.isFinal) {
+            if (text.trim()) opts.onTranscript(text.trim());
+          } else {
+            interim += text;
           }
         }
+        if (interim) opts.onInterim?.(interim.trim());
       };
       rec.onerror = () => { /* no-speech / aborted are routine; onend restarts */ };
       rec.onend = () => {
-        if (active) setTimeout(spin, 250);
-        else onStateChange?.(false);
+        if (active) setTimeout(spin, 200);
+        else opts.onStateChange?.(false);
       };
       rec.start();
-      onStateChange?.(true);
+      opts.onStateChange?.(true);
     } catch {
       active = false;
-      onStateChange?.(false);
+      opts.onStateChange?.(false);
     }
   };
 
@@ -123,7 +141,7 @@ export function createVoiceListener(
     stop: () => {
       active = false;
       try { rec?.abort(); } catch { /* ignore */ }
-      onStateChange?.(false);
+      opts.onStateChange?.(false);
     },
   };
 }

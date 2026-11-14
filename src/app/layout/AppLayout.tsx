@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { TopBar } from './TopBar';
 import { NavigationBar } from './NavigationBar';
 import { EmergencyFloatingButton } from './EmergencyFloatingButton';
+import { VoiceAssistant } from './VoiceAssistant';
 import { PersistentFooter } from './PersistentFooter';
 
 export const AppLayout: React.FC = () => {
@@ -15,6 +16,7 @@ export const AppLayout: React.FC = () => {
         <Outlet />
       </main>
 
+      <VoiceAssistant />
       <EmergencyFloatingButton />
       <PersistentFooter />
     </div>
