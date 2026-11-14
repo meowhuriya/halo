@@ -209,6 +209,7 @@ export const CprCoachProtocol: React.FC<CprCoachProtocolProps> = ({
               type="button"
               data-testid="toggle-metronome-btn"
               onClick={handleToggleMetronome}
+              data-voice="metronome"
               className={`flex-1 h-[76px] min-h-[76px] rounded-2xl font-mono font-black text-lg tracking-wider flex items-center justify-center gap-3 transition-all glove-target cursor-pointer shadow-lg border-2 ${
                 isRunning
                   ? 'bg-amber-600 hover:bg-amber-500 text-white border-amber-300 shadow-[0_0_25px_rgba(217,119,6,0.6)]'

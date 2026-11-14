@@ -57,6 +57,28 @@ export interface SpeakOptions {
   pitch?: number;
 }
 
+/**
+ * Chrome populates speechSynthesis.getVoices() asynchronously; the first
+ * utterance after page load can fire before the list exists and falls back
+ * to the default voice. Resolve once voices are available (or after a short
+ * timeout, so speech never hangs).
+ */
+let voicesReady: Promise<void> | null = null;
+export function waitForVoices(timeoutMs = 1500): Promise<void> {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return Promise.resolve();
+  if (window.speechSynthesis.getVoices().length > 0) return Promise.resolve();
+  if (!voicesReady) {
+    voicesReady = new Promise<void>((resolve) => {
+      const done = () => { window.speechSynthesis.onvoiceschanged = null; resolve(); };
+      window.speechSynthesis.onvoiceschanged = done;
+      setTimeout(done, timeoutMs);
+      // Some builds need a poke before onvoiceschanged fires
+      window.speechSynthesis.getVoices();
+    });
+  }
+  return voicesReady;
+}
+
 export function speakOffline(
   text: string,
   options: SpeakOptions = {}
@@ -66,7 +88,7 @@ export function speakOffline(
     return { spoken: false, text };
   }
 
-  try {
+  const begin = () => {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = options.rate ?? 0.95;
@@ -82,6 +104,10 @@ export function speakOffline(
     if (options.onError) utterance.onerror = (e) => options.onError!(e);
 
     window.speechSynthesis.speak(utterance);
+  };
+
+  try {
+    void waitForVoices().then(begin).catch((err) => options.onError?.(err));
     return { spoken: true, text };
   } catch (err) {
     options.onError?.(err);

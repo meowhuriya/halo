@@ -23,7 +23,7 @@
 | **Amsler grid** | Screen-calibrated (bank-card width) vision self-check for SANS; compares each eye with its previous map. |
 | **Readiness score** | One number with a visible breakdown: GO / GO WITH CAUTION / HOLD. |
 | **Radiation + storm shelter** | Cumulative dose vs the 600 mSv career limit; Solar Particle Event shelter protocol. |
-| **Emergency mode** | One red button. "Who needs help?" → decision clock (*earliest answer from Earth = 2 × light delay* vs *time since event*) → voice-guided, captioned protocols: CPR coach with a 110/min metronome and microgravity positions (restraint, Evetts-Russomano, handstand), chest-pain triage with red-flag logic, toxic atmosphere, radiation storm. Ends with an auto-generated **SBAR** handover report. |
+| **Emergency mode** | One red button. Hands-free: tap *Answer by voice* and say "no, she's not breathing" or "chest pain" — HALO replies and opens the right protocol; "start"/"stop" drive the CPR metronome. "Who needs help?" → decision clock (*earliest answer from Earth = 2 × light delay* vs *time since event*) → voice-guided, captioned protocols: CPR coach with a 110/min metronome and microgravity positions (restraint, Evetts-Russomano, handstand), chest-pain triage with red-flag logic, toxic atmosphere, radiation storm. Ends with an auto-generated **SBAR** handover report. |
 | **Ground Link** | Alerts and reports travel to a simulated flight-surgeon console with a real (time-compressed) light delay; replies come back the same way. `/split` shows ship and Earth side by side. |
 | **Environments** | ISS, Mars transit, Moon base, Mars base, rover — each changes gravity, light delay, radiation rate, available equipment and the autonomy level. |
 | **Offline-first PWA** | All models, fonts and WASM are bundled. No runtime network calls. |
@@ -76,6 +76,7 @@ AI coding assistants (Google Antigravity with Gemini and Claude models, and Anth
 - Prototype only; not validated for clinical use.
 - Face-mode heart rate is experimental and often rejected by the quality gate; fingertip mode is the recommended method.
 - The camera does **not** estimate blood pressure, SpO₂, HRV or stress — a 30 fps webcam cannot do these reliably.
+- Voice *answers* use the browser's speech recognition (Chrome/Edge), which needs a connection; every other feature, including spoken guidance, runs offline. Buttons always work.
 - No drug names or doses are hard-coded; emergency steps defer to the onboard medical checklist and flight surgeon.
 
 ## Licence

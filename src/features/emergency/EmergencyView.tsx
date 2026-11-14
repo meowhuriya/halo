@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMission } from '../../app/MissionContext';
 import { db, type CrewMember, type PersonalBaseline } from '../../data/db';
 import { getLocalVoice, speakOffline } from '../../utils/speech';
+import { createVoiceListener, isVoiceCommandSupported, matchIntent, type VoiceListener } from '../../utils/voiceCommands';
 import { CprCoachProtocol } from './CprCoachProtocol';
 import { ChestPainProtocol } from './ChestPainProtocol';
 import { DecisionClockBar } from './DecisionClockBar';
@@ -68,6 +69,17 @@ export const EmergencyView: React.FC = () => {
 
   const lastSpokenRef = useRef(currentCaption);
 
+  // Hands-free voice commands (Chrome/Edge). Buttons always remain available.
+  const voiceSupported = isVoiceCommandSupported();
+  const [voiceCommandsOn, setVoiceCommandsOn] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [heardText, setHeardText] = useState('');
+  const listenerRef = useRef<VoiceListener | null>(null);
+  const stageRef = useRef(stage);
+  const patientRef = useRef(patient);
+  useEffect(() => { stageRef.current = stage; }, [stage]);
+  useEffect(() => { patientRef.current = patient; }, [patient]);
+
   // Load local voice capability on mount per §3 (v3)
   useEffect(() => {
     const voice = getLocalVoice();
@@ -94,13 +106,18 @@ export const EmergencyView: React.FC = () => {
       if (isMuted) return;
 
       setIsSpeaking(true);
+      listenerRef.current?.stop();
+      const resume = () => {
+        setIsSpeaking(false);
+        if (voiceCommandsOn) listenerRef.current?.start();
+      };
       speakOffline(text, {
         onStart: () => setIsSpeaking(true),
-        onEnd: () => setIsSpeaking(false),
-        onError: () => setIsSpeaking(false),
+        onEnd: resume,
+        onError: resume,
       });
     },
-    [isMuted]
+    [isMuted, voiceCommandsOn]
   );
 
   // Speak initial prompt on stage transitions
@@ -124,6 +141,67 @@ export const EmergencyView: React.FC = () => {
   const handleRecordVitals = useCallback((snapshot: VitalsSnapshot) => {
     setCapturedVitals((prev) => [...prev, snapshot]);
   }, []);
+
+  // ---- Voice intent router: the spoken equivalent of pressing a button ----
+  const handlersRef = useRef<{ confirm: () => void; unresponsive: () => void; conscious: (t: EmergencyType) => void }>({
+    confirm: () => {}, unresponsive: () => {}, conscious: () => {},
+  });
+
+  const handleVoiceTranscript = useCallback((transcript: string) => {
+    setHeardText(transcript);
+    const intent = matchIntent(transcript);
+    if (!intent) return;
+    const st = stageRef.current;
+    const who = patientRef.current?.name ?? 'the patient';
+
+    if (intent === 'REPEAT') { speak(lastSpokenRef.current); return; }
+
+    if (st === 'PATIENT_SELECT') {
+      if (intent === 'ME') { if (crew) setPatient(crew); speak('Understood, you need help. Confirming.'); setTimeout(() => handlersRef.current.confirm(), 900); }
+      else if (intent === 'CREWMATE') { speak('Okay. Tap the crewmate who needs help, or say their first name.'); }
+      else if (intent === 'CONFIRM' || intent === 'YES' || intent === 'NEXT') { handlersRef.current.confirm(); }
+      else {
+        const named = allCrew.find((c) => transcript.toLowerCase().includes(c.name.split(' ').pop()!.toLowerCase()) || transcript.toLowerCase().includes(c.name.split(' ')[0].toLowerCase()));
+        if (named) { setPatient(named); speak(`Got it, ${named.name}. Confirming.`); setTimeout(() => handlersRef.current.confirm(), 900); }
+      }
+      return;
+    }
+
+    if (st === 'TRIAGE') {
+      if (intent === 'NO') { speak(`Understood. ${who} is unresponsive. Starting CPR coach now. Call the crew and get the AED.`); setTimeout(() => handlersRef.current.unresponsive(), 1200); }
+      else if (intent === 'CHEST_PAIN') { speak('Chest pain. Keep them still and at rest. Opening the chest pain protocol.'); setTimeout(() => handlersRef.current.conscious('CHEST_PAIN'), 1000); }
+      else if (intent === 'BREATHING') { speak('Breathing trouble. Masks on first. Opening the toxic atmosphere protocol.'); setTimeout(() => handlersRef.current.conscious('TOXIC_BREATHING'), 1000); }
+      else if (intent === 'RADIATION') { speak('Radiation storm. Opening the shelter protocol.'); setTimeout(() => handlersRef.current.conscious('SOLAR_STORM'), 1000); }
+      else if (intent === 'YES') { speak(`Good, ${who} is conscious. What is the main problem: chest pain, breathing trouble, or a radiation storm?`); }
+      return;
+    }
+
+    if (st === 'PROTOCOL') {
+      const lower = transcript.toLowerCase();
+      const metro = document.querySelector<HTMLButtonElement>('[data-voice="metronome"]');
+      if (metro && /\b(start|stop|pause|metronome|compressions|beat)\b/.test(lower)) {
+        metro.click();
+        speak(/\b(stop|pause)\b/.test(lower) ? 'Metronome stopped.' : 'Metronome running. Push hard, push fast, to the beat.');
+        return;
+      }
+      if (intent === 'NEXT' || intent === 'YES' || intent === 'CONFIRM') speak('Okay. Keep going. Say repeat if you need the instruction again.');
+    }
+  }, [speak, crew, allCrew]);
+
+  // Start/stop the listener when the user toggles voice commands
+  useEffect(() => {
+    if (!voiceSupported) return;
+    if (voiceCommandsOn) {
+      if (!listenerRef.current) listenerRef.current = createVoiceListener(handleVoiceTranscript, setIsListening);
+      if (!isSpeaking) listenerRef.current?.start();
+      speak('Voice commands on. You can answer me by speaking.');
+    } else {
+      listenerRef.current?.stop();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [voiceCommandsOn]);
+
+  useEffect(() => () => { listenerRef.current?.stop(); }, []);
 
   // Step 0 confirmation -> go to Triage
   const handleConfirmPatient = () => {
@@ -250,6 +328,14 @@ export const EmergencyView: React.FC = () => {
     speak('SBAR Incident Report queued to Ground Link with high priority.');
   };
 
+  useEffect(() => {
+    handlersRef.current = {
+      confirm: handleConfirmPatient,
+      unresponsive: handleSelectUnresponsive,
+      conscious: handleSelectConsciousProtocol,
+    };
+  });
+
   return (
     <div
       data-testid="emergency-screen"
@@ -274,6 +360,30 @@ export const EmergencyView: React.FC = () => {
           isSpeaking={isSpeaking}
           onRepeat={handleRepeatVoice}
         />
+
+        {/* Hands-free voice commands (Chrome/Edge). Buttons remain available. */}
+        <div className="flex flex-wrap items-center gap-3 -mt-2">
+          {voiceSupported ? (
+            <button
+              type="button"
+              data-testid="voice-commands-toggle"
+              onClick={() => setVoiceCommandsOn((v) => !v)}
+              aria-pressed={voiceCommandsOn}
+              className={`min-h-[56px] px-5 rounded-xl border-2 font-bold tracking-wide transition-all ${
+                voiceCommandsOn
+                  ? 'bg-emerald-700/40 border-emerald-300 text-white'
+                  : 'bg-black/50 border-red-500/40 text-red-100 hover:border-emerald-400'
+              }`}
+            >
+              {voiceCommandsOn ? (isListening ? '● LISTENING — speak your answer' : '● VOICE COMMANDS ON') : '○ ANSWER BY VOICE'}
+            </button>
+          ) : (
+            <span className="text-xs font-mono text-red-200/60">Voice answers need Chrome or Edge. Use the buttons.</span>
+          )}
+          {voiceCommandsOn && heardText && (
+            <span className="text-sm font-mono text-emerald-200/80">Heard: "{heardText}"</span>
+          )}
+        </div>
 
         {/* Step 0: Who needs help? Me / a crewmate */}
         {stage === 'PATIENT_SELECT' && (
