@@ -108,7 +108,8 @@ export function createVoiceListener(
       rec.onresult = (e) => {
         const results = e.results as unknown as ArrayLike<{ isFinal?: boolean; 0: { transcript: string }; length: number } & ArrayLike<{ transcript: string }>>;
         let interim = '';
-        for (let i = 0; i < results.length; i++) {
+        const start = (e as unknown as { resultIndex?: number }).resultIndex ?? 0;
+        for (let i = start; i < results.length; i++) {
           const r = results[i];
           const text = r[0]?.transcript ?? '';
           if (r.isFinal) {

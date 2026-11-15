@@ -274,16 +274,6 @@ html { scroll-behavior: smooth; }
   font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; backdrop-filter: blur(6px);
 }
 .holo-expand-btn:hover { border-color: #BFE3FF; color: #fff; }
-/* expanded: lift out of the card into a centred stage */
-.holo-expanded-slot { position: static; }
-.holo-backdrop { position: fixed; inset: 0; z-index: 60; background: rgba(2,6,23,0.72); backdrop-filter: blur(4px); border: 0; }
-.holo-stage--expanded {
-  position: fixed; z-index: 61; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  width: min(92vw, 560px); max-width: none; height: min(86vh, 760px); aspect-ratio: auto;
-  box-shadow: 0 0 80px rgba(115,179,231,0.35), inset 0 0 60px rgba(115,179,231,0.08);
-  cursor: grab;
-}
-.holo-stage--expanded .holo-spin { animation: holoIdleWide 12s ease-in-out infinite, holoFloat 5s ease-in-out infinite; }
 @keyframes holoIdle { 0%,100% { transform: rotateY(-7deg); } 50% { transform: rotateY(7deg); } }
 @keyframes holoIdleWide { 0%,100% { transform: rotateY(-16deg); } 50% { transform: rotateY(16deg); } }
 @keyframes holoFloat { 0%,100% { translate: 0 0; } 50% { translate: 0 -5px; } }
@@ -292,3 +282,15 @@ html { scroll-behavior: smooth; }
   .holo-spin, .holo-scanlines { animation: none !important; }
   .holo-body { transform: none !important; }
 }
+
+/* ---------- 3D hologram modal (portal, page level) ---------- */
+.holo3d-modal { position: fixed; inset: 0; z-index: 45; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.holo3d-backdrop { position: absolute; inset: 0; border: 0; background: radial-gradient(ellipse at center, rgba(11,22,40,0.85), rgba(2,6,23,0.95)); backdrop-filter: blur(6px); cursor: default; }
+.holo3d-panel {
+  position: relative; width: min(96vw, 900px); height: min(90vh, 820px); display: flex; flex-direction: column;
+  border-radius: 28px; overflow: hidden; border: 1px solid rgba(156,201,255,0.25);
+  background: radial-gradient(60% 50% at 50% 100%, rgba(115,179,231,0.18), transparent 70%), linear-gradient(180deg, #0A1426 0%, #050A15 100%);
+  box-shadow: 0 0 80px rgba(115,179,231,0.25), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.holo3d-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.holo3d-canvas { position: relative; flex: 1; min-height: 0; }

@@ -1,4 +1,5 @@
 import React, { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 const Twin3D = lazy(() => import('./Twin3D'));
 import {
@@ -132,7 +133,6 @@ export const DigitalTwinSvg: React.FC<DigitalTwinSvgProps> = ({
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [hover, setHover] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const [threeD, setThreeD] = useState(false);
   const webglOk = typeof document !== 'undefined' && (() => { try { const c = document.createElement('canvas'); return Boolean(c.getContext('webgl2') || c.getContext('webgl')); } catch { return false; } })();
   const reduceMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
@@ -172,32 +172,47 @@ export const DigitalTwinSvg: React.FC<DigitalTwinSvgProps> = ({
     }
   };
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
-      {/* Left: Layered Anatomical Hologram SVG */}
-      <div className={`md:col-span-6 flex justify-center ${expanded ? 'holo-expanded-slot' : ''}`}>
-        {expanded && <button type="button" aria-label="Close hologram" className="holo-backdrop" onClick={() => setExpanded(false)} />}
-        <div
-          ref={stageRef}
-          className={`holo-stage relative w-full max-w-[340px] aspect-[340/480] rounded-3xl ${expanded ? 'holo-stage--expanded' : ''} ${hover ? 'holo-stage--hover' : ''}`}
-          onPointerMove={onPointerMove}
-          onPointerEnter={() => setHover(true)}
-          onPointerLeave={onPointerLeave}
-          onDoubleClick={() => { setExpanded((v) => !v); setThreeD(webglOk); }}
-          title={expanded ? 'Double-click or press Esc to close' : 'Move to turn · double-click to enlarge'}
-        >
-          <div className="holo-scanlines" aria-hidden />
-          {expanded && threeD && webglOk ? (
-            <div className="absolute inset-0 rounded-3xl overflow-hidden">
+  const modal3D = expanded && webglOk && typeof document !== 'undefined'
+    ? createPortal(
+        <div className="holo3d-modal" role="dialog" aria-label="3D Digital Twin">
+          <button type="button" aria-label="Close 3D hologram" className="holo3d-backdrop" onClick={() => setExpanded(false)} />
+          <div className="holo3d-panel">
+            <div className="holo3d-head">
+              <div>
+                <div className="text-[11px] uppercase tracking-[0.14em] text-cyan-300/80 font-semibold">Digital Twin</div>
+                <div className="text-lg font-bold text-white">3D Hologram</div>
+              </div>
+              <button type="button" onClick={() => setExpanded(false)} className="holo-expand-btn">Close</button>
+            </div>
+            <div className="holo3d-canvas">
               <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-xs text-cyan-200/80 tracking-widest uppercase">Projecting hologram…</div>}>
                 <Twin3D regions={regions} selectedRegionId={selectedRegionId} onSelectRegion={onSelectRegion} />
               </Suspense>
             </div>
-          ) : null}
+          </div>
+        </div>,
+        document.body,
+      )
+    : null;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+      {modal3D}
+      {/* Left: Layered Anatomical Hologram SVG */}
+      <div className="md:col-span-6 flex justify-center">
+        <div
+          ref={stageRef}
+          className={`holo-stage relative w-full max-w-[340px] aspect-[340/480] rounded-3xl ${hover ? 'holo-stage--hover' : ''}`}
+          onPointerMove={onPointerMove}
+          onPointerEnter={() => setHover(true)}
+          onPointerLeave={onPointerLeave}
+          onDoubleClick={() => { if (webglOk) setExpanded(true); }}
+          title={webglOk ? 'Move to tilt · double-click for the 3D hologram' : 'Move to tilt'}
+        >
+          <div className="holo-scanlines" aria-hidden />
           <div
             className="holo-body"
-            style={{ transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`, visibility: expanded && threeD && webglOk ? 'hidden' : 'visible' }}
-            data-hidden={expanded && threeD && webglOk ? 'true' : undefined}
+            style={{ transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)` }}
           >
           <div className="holo-spin">
           <svg
@@ -550,21 +565,13 @@ export const DigitalTwinSvg: React.FC<DigitalTwinSvgProps> = ({
           </div>
           </div>
           <div className="holo-base" aria-hidden><span /></div>
-          <div className="absolute right-2.5 top-2.5 z-[3] flex gap-1.5">
-            {expanded && webglOk && (
-              <button type="button" onClick={() => setThreeD((v) => !v)} className="holo-expand-btn" aria-pressed={threeD}>
-                {threeD ? '2D' : '3D'}
+          {webglOk && (
+            <div className="absolute right-2.5 top-2.5 z-[3]">
+              <button type="button" onClick={() => setExpanded(true)} className="holo-expand-btn">
+                3D Hologram
               </button>
-            )}
-            <button
-              type="button"
-              onClick={() => { if (expanded) { setExpanded(false); } else { setExpanded(true); setThreeD(webglOk); } }}
-              className="holo-expand-btn"
-              aria-pressed={expanded}
-            >
-              {expanded ? 'Close' : '3D Hologram'}
-            </button>
-          </div>
+            </div>
+          )}
         </div>
       </div>
 

@@ -190,26 +190,65 @@ export const VoiceAssistant: React.FC = () => {
     })();
   }, [navigate, say]);
 
+  // Wait for the person to finish: keep listening, and only answer after a
+  // pause of PAUSE_MS with no new speech. Tapping the mic sends immediately.
+  const PAUSE_MS = 2000;
+  const bufRef = useRef('');
+  const interimRef = useRef('');
+  const silenceRef = useRef<number | null>(null);
+  const handleRef = useRef(handle);
+  useEffect(() => { handleRef.current = handle; }, [handle]);
+
+  const flush = useCallback(() => {
+    if (silenceRef.current) { window.clearTimeout(silenceRef.current); silenceRef.current = null; }
+    const text = `${bufRef.current} ${interimRef.current}`.replace(/\s+/g, ' ').trim();
+    bufRef.current = ''; interimRef.current = '';
+    listenerRef.current?.stop();
+    if (text) handleRef.current(text);
+    else { setInterim(''); setState('off'); }
+  }, []);
+  const flushRef = useRef(flush);
+  useEffect(() => { flushRef.current = flush; }, [flush]);
+
+  const armSilence = useCallback(() => {
+    if (silenceRef.current) window.clearTimeout(silenceRef.current);
+    silenceRef.current = window.setTimeout(() => flushRef.current(), PAUSE_MS);
+  }, []);
+
   const listen = useCallback(() => {
     if (!voiceSupported) return;
     unlockSpeech();
     if (!listenerRef.current) {
       listenerRef.current = createVoiceListener({
-        onTranscript: handle,
-        onInterim: (p) => setInterim(p),
-        onStateChange: (on) => { if (on) setState('listening'); else if (stateRef.current === 'listening') setState('off'); },
+        continuous: true,
+        onTranscript: (t) => {
+          bufRef.current = `${bufRef.current} ${t}`.trim();
+          interimRef.current = '';
+          setInterim(bufRef.current);
+          armSilence();
+        },
+        onInterim: (p) => {
+          interimRef.current = p;
+          setInterim(`${bufRef.current} ${p}`.trim());
+          armSilence();
+        },
+        onStateChange: (on) => { if (on) setState('listening'); },
       });
     }
+    bufRef.current = ''; interimRef.current = '';
     setInterim('');
     chimeListen();
     listenerRef.current?.start();
-  }, [voiceSupported, handle]);
+    setState('listening');
+  }, [voiceSupported, armSilence]);
 
   const toggleMic = useCallback(() => {
-    if (state === 'listening') { listenerRef.current?.stop(); setState('off'); return; }
+    if (state === 'listening') { flush(); return; }          // tap again = "I'm done, answer now"
     if (state === 'speaking') { window.speechSynthesis?.cancel(); setState('off'); return; }
     listen();
-  }, [state, listen]);
+  }, [state, listen, flush]);
+
+  useEffect(() => () => { if (silenceRef.current) window.clearTimeout(silenceRef.current); }, []);
 
   const submitTyped = useCallback(() => {
     const q = typed.trim();
@@ -280,7 +319,7 @@ export const VoiceAssistant: React.FC = () => {
   if (location.pathname === '/emergency' || location.pathname === '/ground' || location.pathname === '/split') return null;
 
   const statusLabel =
-    state === 'listening' ? 'Listening…' : state === 'thinking' ? 'Thinking…' : state === 'speaking' ? 'Speaking · tap mic to stop' : voiceSupported ? 'Type, or tap the mic' : 'Type your question (voice needs Chrome or Edge)';
+    state === 'listening' ? "Listening, take your time · I'll answer when you pause" : state === 'thinking' ? 'Thinking…' : state === 'speaking' ? 'Speaking · tap mic to stop' : voiceSupported ? 'Type, or tap the mic' : 'Type your question (voice needs Chrome or Edge)';
   const micClass =
     !voiceSupported ? 'bg-slate-700/60 border-slate-500 text-slate-400 cursor-not-allowed'
     : state === 'listening' ? 'bg-emerald-500 border-emerald-200 text-[#06251A] shadow-[0_0_0_8px_rgba(16,185,129,0.25),0_0_30px_rgba(16,185,129,0.8)] scale-105'
