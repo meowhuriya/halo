@@ -71,6 +71,11 @@ src/
 ```
 Stack: Vite · React 18 · TypeScript · Tailwind · Dexie · MediaPipe Tasks Vision · Web Speech API · Vitest.
 
+## Credits
+
+- **3D anatomy model** (`public/models/human.glb`): derived from [BodyParts3D](https://dbarchive.biosciencedbc.jp/en/bodyparts3d/), © 2008 Life Science Integrated Database Center (DBCLS), licensed **CC BY-SA 2.1 Japan**. Skin, skeleton and organs were selected and simplified for the web by the HALO team with `scripts/build_human_glb.py`; the derived model is shared under the same licence.
+- Mesh files were obtained via [Kevin-Mattheus-Moerman/BodyParts3D](https://github.com/Kevin-Mattheus-Moerman/BodyParts3D).
+
 ## Use of AI ("Super Intelligence" in the Space Apps form)
 
 AI coding assistants (Google Antigravity with Gemini and Claude models, and Anthropic's Claude) were used to generate and refactor code, tests and documentation from a human-written specification (`HALO_SPEC.md`). The concept and feature set were developed by the team in dialogue with AI tools; all medical thresholds were specified and checked by the team, every feature was reviewed and tested by the team, and the voice in Emergency mode is the device's own text-to-speech. The cover banner and the HALO buddy avatar (`public/brand/`) are AI-generated illustrations; the banner carries its generator's visible watermark as the Space Apps rules require. No NASA branding is used.
