@@ -133,10 +133,10 @@ export const DigitalTwinSvg: React.FC<DigitalTwinSvgProps> = ({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
       {/* Left: Layered Anatomical Hologram SVG */}
       <div className="md:col-span-6 flex justify-center">
-        <div className="relative w-full max-w-[300px] aspect-[340/480] flex items-center justify-center rounded-3xl bg-gradient-to-b from-cyan-500/[0.05] via-slate-950/60 to-blue-950/20 border border-white/10 p-3 shadow-[inset_0_0_40px_rgba(115, 179, 231,0.06)]">
+        <div className="relative w-full max-w-[340px] aspect-[340/480] flex items-center justify-center rounded-3xl bg-gradient-to-b from-cyan-500/[0.05] via-slate-950/60 to-blue-950/20 border border-white/10 p-3 shadow-[inset_0_0_40px_rgba(115, 179, 231,0.06)]">
           <svg
             viewBox="0 0 340 480"
             className="w-full h-full select-none overflow-visible"

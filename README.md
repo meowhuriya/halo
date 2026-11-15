@@ -38,13 +38,15 @@
 
 ## Validation
 
-Camera heart rate vs reference device (counted wrist pulse / pulse oximeter), collected during the hackathon:
+The **Validation** page in the app logs paired readings (HALO camera BPM vs a reference at the same moment) and computes MAE, RMSE, % within ±5 bpm and a Bland-Altman plot from them. Nothing on that page is pre-filled.
+
+Readings collected by the team during the hackathon (fingertip mode, counted wrist pulse as reference):
 
 | Readings (n) | Mean abs. error | Within ±5 bpm |
 |---|---|---|
 | _N_ | _X.X bpm_ | _Y %_ |
 
-_Fill in from the app's Validation page before submission. Report face mode and fingertip mode separately._
+_Fill in from the Validation page before submission._
 
 ## Run it locally
 

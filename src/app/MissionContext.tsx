@@ -53,7 +53,7 @@ export const MissionProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const savedConfig = await db.missionConfig.get('current');
       if (savedConfig) {
         // Recalculate mission day if start date is known
-        if (savedConfig.missionStartDate) {
+        if (savedConfig.missionStartDate && !savedConfig.frozenMissionDay) {
           const start = new Date(savedConfig.missionStartDate).getTime();
           const now = Date.now();
           const dayDiff = Math.max(1, Math.floor((now - start) / (1000 * 60 * 60 * 24)) + 1);

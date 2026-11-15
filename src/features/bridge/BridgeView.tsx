@@ -583,7 +583,7 @@ export const BridgeView: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative z-10">
           {/* LEFT COLUMN (7 cols): Interactive Layered SVG Digital Twin */}
-          <GlassCard variant="default" padded="md" className="lg:col-span-7 flex flex-col justify-between space-y-4">
+          <GlassCard variant="default" padded="md" className="lg:col-span-7 flex flex-col justify-start space-y-4">
             <div className="flex flex-wrap items-start justify-between gap-3 pb-3 border-b border-white/10">
               <div>
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">

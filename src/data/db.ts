@@ -26,7 +26,23 @@ export interface MissionConfig {
   timeCompression: boolean; // 1 min light delay = 2s real time for demo
   dosimeterDoseMsv?: number;
   customNotes?: string;
+  /** Demo missions keep a frozen mission day so the story reads the same whenever it is opened. */
+  frozenMissionDay?: boolean;
   updatedAt: number;
+}
+
+/** One paired reading for the Validation page (§7.16): HALO camera HR vs a reference device. */
+export interface ValidationLog {
+  id?: number;
+  timestamp: number;
+  method: 'fingertip' | 'face';
+  appBpm: number;
+  referenceBpm: number;
+  referenceDevice: string;   // e.g. "pulse oximeter", "counted wrist pulse", "smartwatch"
+  lighting?: string;
+  fitzpatrick?: 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI' | '';
+  motion?: 'still' | 'some' | 'moving';
+  notes?: string;
 }
 
 export interface HealthReading {
@@ -114,6 +130,7 @@ export class HaloDatabase extends Dexie {
   tasks!: Table<ScheduledTask>;
   groundPackets!: Table<GroundPacket>;
   incidentReports!: Table<IncidentReport>;
+  validationLogs!: Table<ValidationLog>;
 
   constructor() {
     super('halo_mission_db');
@@ -125,6 +142,16 @@ export class HaloDatabase extends Dexie {
       tasks: '++id, crewMemberId, dueDay, status, taskType',
       groundPackets: '++id, direction, delivered, sentAt, arrivalAt, priority',
       incidentReports: '++id, timestamp, emergencyType, status'
+    });
+    this.version(2).stores({
+      crewMembers: '++id, name, isCurrent, role, isCmo',
+      missionConfig: 'id',
+      healthReadings: '++id, timestamp, crewMemberId, indicator, status, source, missionDay',
+      baselines: '++id, [crewMemberId+indicator], indicator, crewMemberId',
+      tasks: '++id, crewMemberId, dueDay, status, taskType',
+      groundPackets: '++id, direction, delivered, sentAt, arrivalAt, priority',
+      incidentReports: '++id, timestamp, emergencyType, status',
+      validationLogs: '++id, timestamp, method'
     });
   }
 }
