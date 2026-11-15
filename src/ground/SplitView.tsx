@@ -57,7 +57,7 @@ export const SplitView: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Split size={16} className="text-purple-400" />
                 <h1 className="text-sm sm:text-base font-extrabold text-white tracking-tight font-mono uppercase">
-                  HALO Deep Space Telemetry · Dual Console Split Screen (§7.12)
+                  HALO Deep Space Telemetry · Dual Console Split Screen
                 </h1>
               </div>
               <p className="text-[11px] text-slate-400">

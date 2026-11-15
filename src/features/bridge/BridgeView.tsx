@@ -494,7 +494,7 @@ export const BridgeView: React.FC = () => {
             data-testid="bridge-watch-judge-tour-btn"
             className="shadow-[0_0_20px_rgba(115, 179, 231,0.4)]"
           >
-            ▶ Watch HALO save a crew (90 s)
+            Watch HALO save a crew (90 s)
           </BigButton>
 
           <Link to="/scan">
@@ -612,7 +612,7 @@ export const BridgeView: React.FC = () => {
               <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0">
                   <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">
-                    CREW OPERATIONAL READINESS (§7.9)
+                    CREW OPERATIONAL READINESS
                   </span>
                   <h2 className="text-xl font-extrabold text-white">Overall Readiness</h2>
                   <div

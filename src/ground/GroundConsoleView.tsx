@@ -274,7 +274,7 @@ export const GroundConsoleView: React.FC<GroundConsoleViewProps> = ({ isSplitVie
               MISSION CONTROL · FLIGHT SURGEON CONSOLE (EARTH)
             </span>
             <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-blue-500/20 text-blue-300 border border-blue-400/30">
-              §7.12
+              
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight">
@@ -722,7 +722,7 @@ export const GroundConsoleView: React.FC<GroundConsoleViewProps> = ({ isSplitVie
                       <div className="mt-2 text-xs text-slate-300 leading-relaxed font-mono">
                         {isIncident && (
                           <div className="text-red-200">
-                            Emergency Incident Report generated per HALO §7.11 SBAR clinical handover.
+                            Emergency Incident Report generated in SBAR clinical handover.
                           </div>
                         )}
                         {typeof pkt.payload?.summary === 'string' && (

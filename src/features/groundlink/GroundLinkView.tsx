@@ -143,7 +143,7 @@ export const GroundLinkView: React.FC<GroundLinkViewProps> = ({ isSplitView = fa
           <div className="flex items-center gap-2 mb-1.5">
             <Radio size={16} className="text-cyan-400" />
             <span className="text-xs font-mono tracking-widest text-cyan-300 uppercase">
-              DEEP SPACE TELEMETRY LINK (§7.12)
+              DEEP SPACE TELEMETRY LINK
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">

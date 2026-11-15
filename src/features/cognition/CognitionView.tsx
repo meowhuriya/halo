@@ -402,7 +402,7 @@ export const CognitionView: React.FC = () => {
           <div className="flex items-center gap-2 mb-1.5">
             <Brain size={16} className="text-cyan-400" />
             <span className="text-xs font-mono tracking-widest text-cyan-300 uppercase">
-              NASA COGNITION BATTERY
+              PVT-B · AFTER NASA'S COGNITION BATTERY
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">

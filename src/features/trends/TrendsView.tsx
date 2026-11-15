@@ -187,9 +187,10 @@ export const TrendsView: React.FC = () => {
       if (typeof r.value === 'number') {
         val = r.value;
       } else if (typeof r.value === 'object' && r.value !== null) {
-        const bpObj = r.value as { systolic?: number; diastolic?: number };
-        val = bpObj.systolic ?? 0;
-        valSec = bpObj.diastolic;
+        const bpObj = r.value as { systolic?: number; diastolic?: number; sys?: number; dia?: number };
+        val = Number(bpObj.systolic ?? bpObj.sys ?? NaN);
+        valSec = bpObj.diastolic ?? bpObj.dia;
+        if (!Number.isFinite(val)) return null;
       }
 
       return {
@@ -202,7 +203,7 @@ export const TrendsView: React.FC = () => {
         source: r.source,
         timestamp: r.timestamp,
       };
-    });
+    }).filter((d): d is NonNullable<typeof d> => d !== null);
   }, [readings, activeConfig.id, selectedRange, currentMissionDay]);
 
   // Latest reading in the active set
@@ -243,7 +244,7 @@ export const TrendsView: React.FC = () => {
           <div className="flex items-center gap-2 mb-1.5">
             <TrendingUp size={18} className="text-cyan-400" />
             <span className="text-xs font-mono tracking-widest text-cyan-300 uppercase font-bold">
-              ANALYTICS &amp; BASELINE TRAJECTORY (§7.13)
+              ANALYTICS &amp; BASELINE TRAJECTORY
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">

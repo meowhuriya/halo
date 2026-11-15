@@ -59,7 +59,7 @@ export const ValidationView: React.FC = () => {
     <div className="space-y-6" data-testid="validation-page">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="text-[11px] font-mono uppercase tracking-widest text-cyan-300/80 flex items-center gap-2"><FlaskConical size={12} /> Clinical evidence · §7.16</div>
+          <div className="text-[11px] font-mono uppercase tracking-widest text-cyan-300/80 flex items-center gap-2"><FlaskConical size={12} /> Clinical evidence</div>
           <h1 className="text-2xl font-bold text-white mt-1">Camera heart-rate validation</h1>
           <p className="text-sm text-slate-300 max-w-2xl mt-1">Paired readings: HALO's camera BPM against a reference at the same moment. MAE, RMSE, % within ±5 bpm and a Bland-Altman plot are computed from what the team logged. <span className="text-amber-300">No readings are pre-filled.</span></p>
         </div>

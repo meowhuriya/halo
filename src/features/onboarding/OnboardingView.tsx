@@ -436,7 +436,7 @@ export const OnboardingView: React.FC = () => {
             <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 space-y-2">
               <div className="flex items-center gap-2 text-xs font-bold text-cyan-300 uppercase tracking-wider">
                 <Activity size={14} />
-                Personal Baseline Layer (§6)
+                Personal Baseline Layer
               </div>
               <p className="text-xs text-slate-300 leading-relaxed">
                 HALO uses your first 5 readings per indicator (or pre-flight checks) to compute your statistical baseline (mean ± SD). Any reading with <code className="text-cyan-300 font-mono">|z| ≥ 2</code> triggers an explainable WATCH flag: <em>"unusual for you"</em>, catching health drift before clinical emergency.

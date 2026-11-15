@@ -25,3 +25,6 @@ dist-ssr
 node_modules
 dist
 *.tsbuildinfo
+
+# unused AI crop (no watermark) — keep out of the repo
+public/brand/halo-buddy.png

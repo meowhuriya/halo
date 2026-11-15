@@ -79,7 +79,7 @@ export const TriageStep: React.FC<TriageStepProps> = ({
       {conscious && (
       <div className="space-y-3" data-testid="conscious-protocols">
         <label className="text-xs font-mono uppercase tracking-wider text-red-300 font-bold block">
-          Select Conscious Clinical Protocol (§7.11):
+          Select Conscious Clinical Protocol:
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* Protocol 2: Chest Pain */}

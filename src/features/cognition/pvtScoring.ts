@@ -210,7 +210,7 @@ export function evaluatePvtSession(
   return evaluateReading({
     indicator: 'pvt',
     value: metrics.meanSpeed,
-    baseline: null, // Use §6 classifyPvt speed-vs-baseline + lapse criterion directly
+    baseline: null, // Use classifyPvt speed-vs-baseline + lapse criterion directly
     options: {
       currentSpeed: metrics.meanSpeed,
       baselineSpeed: baseline ? baseline.baselineSpeed : 0,

@@ -39,7 +39,7 @@ export const PatientSelectStep: React.FC<PatientSelectStepProps> = ({
           Who needs emergency help?
         </h2>
         <p className="text-xs sm:text-sm text-red-200/90 max-w-lg mx-auto">
-          All vitals, ECG rhythms, and protocol decisions are tied to the patient’s personal baseline and downlinked medical record.
+          All vitals and protocol decisions are tied to the patient’s personal baseline and downlinked medical record.
         </p>
       </div>
 

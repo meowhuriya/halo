@@ -89,7 +89,7 @@ export const ChecksView: React.FC = () => {
             Guided Manual Vitals Checks
           </h1>
           <p className="text-xs sm:text-sm text-slate-300 mt-1">
-            Standardized NASA clinical protocols. Hardware availability adapts dynamically to current habitat payload.
+            Step-by-step guided checks. Hardware availability adapts dynamically to current habitat payload.
           </p>
         </div>
         <StatusBadge status="NOMINAL" />

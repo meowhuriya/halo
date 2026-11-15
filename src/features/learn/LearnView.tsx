@@ -49,7 +49,7 @@ export const LearnView: React.FC = () => {
           <div className="flex items-center gap-2 mb-1.5">
             <BookOpen size={16} className="text-cyan-400" />
             <span className="text-xs font-mono tracking-widest text-cyan-300 uppercase">
-              NASA HUMAN RESEARCH PROGRAM · CLINICAL COMPENDIUM
+              BASED ON NASA HUMAN RESEARCH PROGRAM HAZARDS
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">

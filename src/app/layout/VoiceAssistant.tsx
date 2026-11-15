@@ -92,7 +92,7 @@ export function planAssistantReply(
     return { say: "You're welcome. I'm here if you need anything." };
   }
   if (has('hello', 'hi', 'hey', 'hi halo', 'hey halo', 'good morning')) {
-    return { say: `Hello ${ctx.crewName.split(' ')[0]}. Readiness is ${ctx.readiness} percent. What do you need?` };
+    return { say: `Hello ${ctx.crewName.split(' ').filter((w) => w && !/^(dr|cdr|col|capt|maj|lt|mr|mrs|ms|prof)\.?$/i.test(w))[0] ?? 'there'}. Readiness is ${ctx.readiness} percent. What do you need?` };
   }
   return {
     say: "I didn't catch that. You can tell me a reading like 'blood pressure 118 over 76' or 'I slept 5 hours', a symptom like 'my vision is blurry', or ask: how's my readiness, what is SANS, read the message from Earth, or say emergency.",
@@ -262,7 +262,8 @@ export const VoiceAssistant: React.FC = () => {
     unlockSpeech();
     setOpen(true);
     if (turns.length === 0) {
-      const name = ctxRef.current.crew?.name?.split(' ')[0] ?? 'there';
+      const parts = (ctxRef.current.crew?.name ?? '').split(' ').filter((w) => w && !/^(dr|cdr|col|capt|maj|lt|mr|mrs|ms|prof)\.?$/i.test(w));
+      const name = parts[0] ?? 'there';
       setTurns([{ who: 'halo', text: `Hi ${name}. I'm HALO. Ask me anything about your health, or tell me where to go.` }]);
     }
     setTimeout(() => inputRef.current?.focus(), 50);

@@ -79,7 +79,7 @@ export const RadiationStormProtocol: React.FC<RadiationStormProtocolProps> = ({
       <div className="p-5 sm:p-6 rounded-3xl bg-black/80 border-2 border-amber-500/40 space-y-4">
         <div className="border-b border-amber-500/30 pb-2">
           <span className="text-xs font-mono uppercase text-amber-300 font-black">
-            Solar Storm Shelter Checklist (§7.8 &amp; §7.11)
+            Solar Storm Shelter Checklist
           </span>
         </div>
 

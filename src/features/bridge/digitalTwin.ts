@@ -6,7 +6,7 @@ import {
   roundWhole,
 } from '../../config/thresholds';
 
-export const CAREER_RADIATION_LIMIT_MSV = 600; // NASA 2022 career limit per HALO_SPEC §6 & §7.8
+export const CAREER_RADIATION_LIMIT_MSV = 600; // NASA 2022 career limit per HALO_SPEC &
 import type {
   CrewMember,
   HealthReading,
@@ -325,7 +325,12 @@ function evaluateStoredIndicator(
   });
 
   let combinedStatus = maxStatus(absEval.status, latest.status);
-  const mergedReasons = new Set<string>([...absEval.reasons, ...(latest.reasons ?? [])]);
+  // Lead with the reason that explains the final (most severe) status: a stored reading can
+  // carry context the re-check lacks (e.g. sleep under 6 h for 3 nights in a row).
+  const storedFirst = maxStatus(absEval.status, latest.status) === latest.status && latest.status !== absEval.status;
+  const mergedReasons = new Set<string>(
+    storedFirst ? [...(latest.reasons ?? []), ...absEval.reasons] : [...absEval.reasons, ...(latest.reasons ?? [])],
+  );
   let baselineNote: string | undefined;
 
   if (baselineIndicators.has(indicator)) {

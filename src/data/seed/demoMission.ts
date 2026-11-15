@@ -112,7 +112,7 @@ export async function seedDemoMission(): Promise<void> {
         oneWayDelaySeconds: 846, // 14 min 06 s
         missionStartDate: startDateStr,
         missionDay: 142,
-        timeCompression: true, // Default ON for demo mission (§7.12)
+        timeCompression: true, // Default ON for demo mission
         frozenMissionDay: true, // the demo story is always Day 142
         dosimeterDoseMsv: 255.6, // 142 days * 1.8 mSv/day (42.6% of 600 mSv career limit)
         customNotes:

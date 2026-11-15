@@ -123,7 +123,7 @@ export const SpeShelterOverlay: React.FC<SpeShelterOverlayProps> = ({
         <div className="p-5 rounded-3xl bg-white/[0.05] border border-red-400/30 space-y-3">
           <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-red-200">
             <ShieldAlert size={16} />
-            <span>Immediate Crew Protective Actions (§7.8)</span>
+            <span>Immediate Crew Protective Actions</span>
           </div>
           <ol className="space-y-2.5 text-sm text-slate-100">
             <li className="flex items-start gap-3">

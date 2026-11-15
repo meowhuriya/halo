@@ -20,12 +20,22 @@ const STATUS_COLOR: Record<HealthStatus, string> = {
 const HOLO = '#73B3E7';
 const BONE = '#DCEBFF';
 const NO_DATA = '#8FB3DC';
+/** Anatomy view: each organ has its own colour so the body reads at a glance. */
+const ORGAN_COLOR: Partial<Record<BodySystemId, string>> = {
+  brain: '#F0A6CA',  // pink
+  eyes: '#7DD3FC',   // sky
+  lungs: '#60A5FA',  // blue
+  heart: '#F87171',  // red
+  blood: '#C084FC',  // violet (liver, kidneys, stomach)
+};
+type ColorMode = 'anatomy' | 'status';
 
 type Props = {
   regions: Record<BodySystemId, BodyRegionTelemetry>;
   selectedRegionId: BodySystemId | null;
   onSelectRegion: (id: BodySystemId) => void;
 };
+type SceneProps = Props & { mode: ColorMode };
 
 /* Fresnel "hologram glass": glows at the silhouette, faint scanlines. */
 function makeHolo(color: string, base: number, edge: number) {
@@ -74,20 +84,27 @@ const ORGANS: Array<{ mesh: string; id: BodySystemId }> = [
   { mesh: 'blood', id: 'blood' },
 ];
 
-function Organ({ geometry, id, region, selected, onSelect }: {
-  geometry: THREE.BufferGeometry; id: BodySystemId; region: BodyRegionTelemetry; selected: boolean; onSelect: (id: BodySystemId) => void;
+function Organ({ geometry, id, region, selected, dimmed, mode, onSelect }: {
+  geometry: THREE.BufferGeometry; id: BodySystemId; region: BodyRegionTelemetry; selected: boolean; dimmed: boolean; mode: ColorMode;
+  onSelect: (id: BodySystemId) => void;
 }) {
   const [hover, setHover] = useState(false);
-  const color = region.hasData ? STATUS_COLOR[region.effectiveStatus] : NO_DATA;
+  const statusColor = region.hasData ? STATUS_COLOR[region.effectiveStatus] : NO_DATA;
+  const color = mode === 'anatomy' ? (ORGAN_COLOR[id] ?? statusColor) : statusColor;
+  const flagged = region.hasData && region.effectiveStatus !== 'NOMINAL';
   const mat = useMemo(() => new THREE.MeshStandardMaterial({ transparent: true, depthWrite: false, roughness: 0.4 }), []);
   const center = useMemo(() => { geometry.computeBoundingSphere(); return geometry.boundingSphere!.center.clone(); }, [geometry]);
-  useEffect(() => { mat.color.set(color); mat.emissive.set(color); }, [color, mat]);
+  useEffect(() => {
+    mat.color.set(color);
+    // In anatomy view a flagged organ glows in its status colour, so alerts stay visible.
+    mat.emissive.set(mode === 'anatomy' && flagged ? statusColor : color);
+  }, [color, statusColor, flagged, mode, mat]);
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
     const critical = region.hasData && region.effectiveStatus === 'CRITICAL';
-    const pulse = critical ? 0.5 + 0.5 * Math.sin(t * 6) : selected ? 0.5 + 0.5 * Math.sin(t * 2.5) : 0;
+    const pulse = critical ? 0.5 + 0.5 * Math.sin(t * 6) : selected ? 0.5 + 0.5 * Math.sin(t * 2.5) : flagged && mode === 'anatomy' ? 0.5 + 0.5 * Math.sin(t * 1.6) : 0;
     mat.emissiveIntensity = (selected || hover ? 1.3 : region.hasData ? 0.7 : 0.3) + pulse * 0.6;
-    mat.opacity = selected || hover ? 0.85 : region.hasData ? 0.5 : 0.25;
+    mat.opacity = dimmed ? 0.12 : selected || hover ? 0.9 : region.hasData ? 0.6 : 0.3;
   });
   return (
     <group>
@@ -102,11 +119,11 @@ function Organ({ geometry, id, region, selected, onSelect }: {
       {(hover || selected) && (
         <Html position={center} distanceFactor={5} style={{ pointerEvents: 'none' }}>
           <div style={{
-            transform: 'translate(14px,-50%)', background: 'rgba(11,22,40,0.92)', border: `1px solid ${color}`,
+            transform: 'translate(14px,-50%)', background: 'rgba(11,22,40,0.92)', border: `1px solid ${statusColor}`,
             color: '#E2E8F0', padding: '4px 9px', borderRadius: 8, fontSize: 12, whiteSpace: 'nowrap', fontWeight: 600,
-            boxShadow: `0 0 14px ${color}55`,
+            boxShadow: `0 0 14px ${statusColor}55`,
           }}>
-            {(LABEL[id] ?? region.name).split(' · ')[0]} <span style={{ color }}>· {region.hasData ? region.effectiveStatus : 'no data yet'}</span>
+            {(LABEL[id] ?? region.name).split(' · ')[0]} <span style={{ color: statusColor }}>· {region.hasData ? region.effectiveStatus : 'no data yet'}</span>
           </div>
         </Html>
       )}
@@ -114,18 +131,30 @@ function Organ({ geometry, id, region, selected, onSelect }: {
   );
 }
 
-function Human({ regions, selectedRegionId, onSelectRegion }: Props) {
+function Human({ regions, selectedRegionId, onSelectRegion, mode }: SceneProps) {
   const { nodes } = useGLTF(MODEL_URL) as unknown as { nodes: Record<string, THREE.Mesh> };
   const geo = (name: string) => nodes[name]?.geometry as THREE.BufferGeometry | undefined;
 
-  const skinColor = selectedRegionId === 'skin' && regions.skin.hasData ? STATUS_COLOR[regions.skin.effectiveStatus] : HOLO;
-  const boneColor = selectedRegionId === 'bones' && regions.bones.hasData ? STATUS_COLOR[regions.bones.effectiveStatus] : BONE;
+  const bonesSelected = selectedRegionId === 'bones';
+  const skinSelected = selectedRegionId === 'skin';
+  const organSelected = Boolean(selectedRegionId) && !bonesSelected && !skinSelected;
+  const skinColor = skinSelected ? (regions.skin.hasData ? STATUS_COLOR[regions.skin.effectiveStatus] : '#BFE3FF') : HOLO;
+  // Selected skeleton lights up (status colour when there is data, bright white otherwise).
+  const boneColor = bonesSelected ? (regions.bones.hasData ? STATUS_COLOR[regions.bones.effectiveStatus] : '#FFFFFF') : BONE;
   const skinMat = useMemo(() => makeHolo(HOLO, 0.045, 1.25), []);
   const boneMat = useMemo(() => makeHolo(BONE, 0.10, 0.9), []);
   // Depth-only pre-pass: only the outermost skin surface gets the glow.
   const skinDepth = useMemo(() => new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: true, transparent: true, opacity: 0 }), []);
-  useEffect(() => { skinMat.uniforms.uColor.value.set(skinColor); }, [skinColor, skinMat]);
-  useEffect(() => { boneMat.uniforms.uColor.value.set(boneColor); }, [boneColor, boneMat]);
+  useEffect(() => {
+    skinMat.uniforms.uColor.value.set(skinColor);
+    skinMat.uniforms.uBase.value = skinSelected ? 0.10 : bonesSelected || organSelected ? 0.02 : 0.045;
+    skinMat.uniforms.uEdge.value = skinSelected ? 1.6 : bonesSelected || organSelected ? 0.7 : 1.25;
+  }, [skinColor, skinSelected, bonesSelected, organSelected, skinMat]);
+  useEffect(() => {
+    boneMat.uniforms.uColor.value.set(boneColor);
+    boneMat.uniforms.uBase.value = bonesSelected ? 0.45 : organSelected ? 0.04 : 0.10;
+    boneMat.uniforms.uEdge.value = bonesSelected ? 1.6 : organSelected ? 0.5 : 0.9;
+  }, [boneColor, bonesSelected, organSelected, boneMat]);
 
   const float = useRef<THREE.Group>(null);
   useFrame(({ clock }) => {
@@ -150,7 +179,7 @@ function Human({ regions, selectedRegionId, onSelectRegion }: Props) {
         const g = geo(mesh);
         return g ? (
           <group key={mesh} userData={{ region: id }}>
-            <Organ geometry={g} id={id} region={regions[id]} selected={selectedRegionId === id} onSelect={onSelectRegion} />
+            <Organ geometry={g} id={id} region={regions[id]} selected={selectedRegionId === id} dimmed={Boolean(selectedRegionId) && selectedRegionId !== id} mode={mode} onSelect={onSelectRegion} />
           </group>
         ) : null;
       })}
@@ -198,6 +227,7 @@ function Loading() {
 
 export const Twin3D: React.FC<Props> = (props) => {
   const { regions, selectedRegionId, onSelectRegion } = props;
+  const [mode, setMode] = useState<ColorMode>('anatomy');
   return (
     <div className="w-full h-full flex flex-col md:flex-row" data-testid="twin-3d">
       <div className="relative flex-1 min-h-[320px]">
@@ -211,7 +241,7 @@ export const Twin3D: React.FC<Props> = (props) => {
           <pointLight position={[2, 3, 3]} intensity={16} color="#BFE3FF" />
           <pointLight position={[-2, 0, -2]} intensity={5} color="#73B3E7" />
           <Suspense fallback={<Loading />}>
-            <Human {...props} />
+            <Human {...props} mode={mode} />
           </Suspense>
           <Projector />
           <OrbitControls
@@ -220,6 +250,19 @@ export const Twin3D: React.FC<Props> = (props) => {
             enableDamping dampingFactor={0.08}
           />
         </Canvas>
+        <div className="absolute left-4 top-3 flex rounded-full border border-white/15 bg-black/40 backdrop-blur p-0.5 text-[11px] font-semibold">
+          {(['anatomy', 'status'] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMode(m)}
+              aria-pressed={mode === m}
+              className={`min-h-[36px] px-3 rounded-full transition-colors ${mode === m ? 'bg-cyan-400 text-[#0B1628]' : 'text-slate-300 hover:text-white'}`}
+            >
+              {m === 'anatomy' ? 'Organ colours' : 'Health status'}
+            </button>
+          ))}
+        </div>
         <div className="absolute left-4 bottom-3 text-xs text-cyan-200/75 font-medium tracking-wide pointer-events-none">
           Drag to turn · scroll to zoom · tap an organ
         </div>
@@ -247,7 +290,7 @@ export const Twin3D: React.FC<Props> = (props) => {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="flex items-center gap-2 text-sm font-semibold text-white">
-                      <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ background: color, boxShadow: `0 0 8px ${color}` }} />
+                      <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ background: mode === 'anatomy' ? (ORGAN_COLOR[id] ?? (id === 'bones' ? BONE : HOLO)) : color, boxShadow: `0 0 8px ${mode === 'anatomy' ? (ORGAN_COLOR[id] ?? HOLO) : color}` }} />
                       {title}
                     </span>
                     <span className="text-[11px] font-bold tracking-wide" style={{ color }}>{r.hasData ? r.effectiveStatus : 'NO DATA'}</span>
