@@ -3,7 +3,7 @@
  * (no model file, works offline). Organs glow in their live status colour and
  * are clickable. Loaded lazily; the 2D SVG twin remains the default view.
  */
-import React, { Suspense, useMemo, useRef, useState } from 'react';
+import React, { Suspense, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Html } from '@react-three/drei';
 import * as THREE from 'three';
