@@ -24,11 +24,11 @@ describe('HALO voice assistant', () => {
   });
   it('does not match words hidden inside other words', () => {
     expect(planAssistantReply('this is a test', ctx).say).not.toContain('Hello');
-    expect(planAssistantReply('what should I do today', ctx).say).toContain('You can say');
+    expect(planAssistantReply('what should I do today', ctx).say).toMatch(/I didn't catch that/);
     expect(planAssistantReply('open the eye test please', ctx).go).toBe('/vision');
     expect(planAssistantReply('check my blood pressure', ctx).go).toBe('/checks');
   });
   it('explains itself when unsure', () => {
-    expect(planAssistantReply('banana', ctx).say).toContain('You can say');
+    expect(planAssistantReply('banana', ctx).say).toMatch(/I didn't catch that/);
   });
 });
