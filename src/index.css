@@ -287,10 +287,11 @@ html { scroll-behavior: smooth; }
 .holo3d-modal { position: fixed; inset: 0; z-index: 45; display: flex; align-items: center; justify-content: center; padding: 16px; }
 .holo3d-backdrop { position: absolute; inset: 0; border: 0; background: radial-gradient(ellipse at center, rgba(11,22,40,0.85), rgba(2,6,23,0.95)); backdrop-filter: blur(6px); cursor: default; }
 .holo3d-panel {
-  position: relative; width: min(96vw, 900px); height: min(90vh, 820px); display: flex; flex-direction: column;
+  position: relative; width: min(96vw, 1040px); height: min(92vh, 860px); display: flex; flex-direction: column;
   border-radius: 28px; overflow: hidden; border: 1px solid rgba(156,201,255,0.25);
   background: radial-gradient(60% 50% at 50% 100%, rgba(115,179,231,0.18), transparent 70%), linear-gradient(180deg, #0A1426 0%, #050A15 100%);
   box-shadow: 0 0 80px rgba(115,179,231,0.25), inset 0 1px 0 rgba(255,255,255,0.06);
 }
 .holo3d-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-.holo3d-canvas { position: relative; flex: 1; min-height: 0; }
+.holo3d-canvas { position: relative; flex: 1; min-height: 0; display: flex; }
+.holo3d-canvas > * { flex: 1; min-width: 0; }

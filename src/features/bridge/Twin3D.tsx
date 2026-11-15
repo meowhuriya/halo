@@ -55,6 +55,17 @@ function makeHolo(color: string, base: number, edge: number) {
   });
 }
 
+const LABEL: Partial<Record<BodySystemId, string>> = {
+  brain: 'Brain · cognition, sleep, mood',
+  eyes: 'Eyes · vision (SANS)',
+  lungs: 'Lungs · oxygen, breathing',
+  heart: 'Heart · heart rate, blood pressure',
+  blood: 'Metabolism · liver, kidneys, stomach (glucose, temperature)',
+  bones: 'Skeleton · bone and muscle',
+  skin: 'Whole body · radiation dose',
+};
+const ORDER: BodySystemId[] = ['brain', 'eyes', 'heart', 'lungs', 'blood', 'bones', 'skin'];
+
 const ORGANS: Array<{ mesh: string; id: BodySystemId }> = [
   { mesh: 'brain', id: 'brain' },
   { mesh: 'eyes', id: 'eyes' },
@@ -95,7 +106,7 @@ function Organ({ geometry, id, region, selected, onSelect }: {
             color: '#E2E8F0', padding: '4px 9px', borderRadius: 8, fontSize: 12, whiteSpace: 'nowrap', fontWeight: 600,
             boxShadow: `0 0 14px ${color}55`,
           }}>
-            {region.shortName || region.name} <span style={{ color }}>· {region.hasData ? region.effectiveStatus : 'no data yet'}</span>
+            {(LABEL[id] ?? region.name).split(' · ')[0]} <span style={{ color }}>· {region.hasData ? region.effectiveStatus : 'no data yet'}</span>
           </div>
         </Html>
       )}
@@ -109,7 +120,7 @@ function Human({ regions, selectedRegionId, onSelectRegion }: Props) {
 
   const skinColor = selectedRegionId === 'skin' && regions.skin.hasData ? STATUS_COLOR[regions.skin.effectiveStatus] : HOLO;
   const boneColor = selectedRegionId === 'bones' && regions.bones.hasData ? STATUS_COLOR[regions.bones.effectiveStatus] : BONE;
-  const skinMat = useMemo(() => makeHolo(HOLO, 0.02, 0.95), []);
+  const skinMat = useMemo(() => makeHolo(HOLO, 0.045, 1.25), []);
   const boneMat = useMemo(() => makeHolo(BONE, 0.10, 0.9), []);
   // Depth-only pre-pass: only the outermost skin surface gets the glow.
   const skinDepth = useMemo(() => new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: true, transparent: true, opacity: 0 }), []);
@@ -185,35 +196,76 @@ function Loading() {
   );
 }
 
-export const Twin3D: React.FC<Props> = (props) => (
-  <div className="w-full h-full relative" data-testid="twin-3d">
-    <Canvas
-      dpr={[1, 2]}
-      camera={{ position: [0, 0.4, 5.2], fov: 38 }}
-      gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-      onCreated={({ gl }) => { gl.setClearColor(0x000000, 0); }}
-    >
-      <ambientLight intensity={0.6} />
-      <pointLight position={[2, 3, 3]} intensity={16} color="#BFE3FF" />
-      <pointLight position={[-2, 0, -2]} intensity={5} color="#73B3E7" />
-      <Suspense fallback={<Loading />}>
-        <Human {...props} />
-      </Suspense>
-      <Projector />
-      <OrbitControls
-        target={[0, 0.15, 0]} enablePan={false} minDistance={1.2} maxDistance={8}
-        autoRotate autoRotateSpeed={0.8} minPolarAngle={0.35} maxPolarAngle={2.4}
-        enableDamping dampingFactor={0.08}
-      />
-    </Canvas>
-    <div className="absolute left-4 bottom-4 text-xs text-cyan-200/75 font-medium tracking-wide pointer-events-none">
-      Drag to turn · scroll to zoom in on an organ · tap it for details
+export const Twin3D: React.FC<Props> = (props) => {
+  const { regions, selectedRegionId, onSelectRegion } = props;
+  return (
+    <div className="w-full h-full flex flex-col md:flex-row" data-testid="twin-3d">
+      <div className="relative flex-1 min-h-[320px]">
+        <Canvas
+          dpr={[1, 2]}
+          camera={{ position: [0, 0.35, 6.0], fov: 34 }}
+          gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
+          onCreated={({ gl }) => { gl.setClearColor(0x000000, 0); }}
+        >
+          <ambientLight intensity={0.6} />
+          <pointLight position={[2, 3, 3]} intensity={16} color="#BFE3FF" />
+          <pointLight position={[-2, 0, -2]} intensity={5} color="#73B3E7" />
+          <Suspense fallback={<Loading />}>
+            <Human {...props} />
+          </Suspense>
+          <Projector />
+          <OrbitControls
+            target={[0, 0.12, 0]} enablePan={false} minDistance={1.2} maxDistance={8}
+            autoRotate={!selectedRegionId} autoRotateSpeed={0.6} minPolarAngle={0.35} maxPolarAngle={2.4}
+            enableDamping dampingFactor={0.08}
+          />
+        </Canvas>
+        <div className="absolute left-4 bottom-3 text-xs text-cyan-200/75 font-medium tracking-wide pointer-events-none">
+          Drag to turn · scroll to zoom · tap an organ
+        </div>
+        <div className="absolute right-4 bottom-3 text-[10px] text-slate-400/80 pointer-events-none">
+          Anatomy: BodyParts3D © DBCLS, CC BY-SA 2.1 JP
+        </div>
+      </div>
+
+      {/* Body systems panel */}
+      <aside className="md:w-[300px] shrink-0 border-t md:border-t-0 md:border-l border-white/10 bg-black/20 p-3 overflow-y-auto">
+        <div className="text-[11px] uppercase tracking-[0.14em] text-slate-400 font-semibold px-1 pb-2">Body systems</div>
+        <ul className="space-y-2">
+          {ORDER.map((id) => {
+            const r = regions[id];
+            if (!r) return null;
+            const color = r.hasData ? STATUS_COLOR[r.effectiveStatus] : NO_DATA;
+            const [title, sub] = (LABEL[id] ?? r.name).split(' · ');
+            const active = selectedRegionId === id;
+            return (
+              <li key={id}>
+                <button
+                  type="button"
+                  onClick={() => onSelectRegion(id)}
+                  className={`w-full text-left rounded-xl border px-3 py-2.5 min-h-[56px] transition-colors ${active ? 'bg-white/10 border-white/30' : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.07]'}`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="flex items-center gap-2 text-sm font-semibold text-white">
+                      <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ background: color, boxShadow: `0 0 8px ${color}` }} />
+                      {title}
+                    </span>
+                    <span className="text-[11px] font-bold tracking-wide" style={{ color }}>{r.hasData ? r.effectiveStatus : 'NO DATA'}</span>
+                  </div>
+                  <div className="text-xs text-slate-400 mt-0.5">{sub}</div>
+                  {r.hasData && r.effectiveStatus !== 'NOMINAL' && r.reasons?.[0] && (
+                    <div className="text-xs text-slate-200/90 mt-1 leading-snug">{r.reasons[0]}</div>
+                  )}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+        <p className="text-[11px] text-slate-500 mt-3 px-1 leading-snug">Colours come from the crew member's latest readings. Tap a system for readings, reasons and what to do.</p>
+      </aside>
     </div>
-    <div className="absolute right-4 bottom-4 text-[10px] text-slate-400/80 pointer-events-none">
-      Anatomy: BodyParts3D © DBCLS, CC BY-SA 2.1 JP
-    </div>
-  </div>
-);
+  );
+};
 
 useGLTF.preload(MODEL_URL);
 export default Twin3D;
