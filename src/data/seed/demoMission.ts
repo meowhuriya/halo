@@ -107,7 +107,7 @@ export async function seedDemoMission(): Promise<void> {
 
       const missionConfig: MissionConfig = {
         id: 'current',
-        missionName: 'Ares V Mars Transit',
+        missionName: 'Ares Mars Transit',
         environmentId: 'transit',
         oneWayDelaySeconds: 846, // 14 min 06 s
         missionStartDate: startDateStr,
@@ -507,7 +507,7 @@ export async function seedDemoMission(): Promise<void> {
           type: 'REPLY',
           title: 'Flight Surgeon Morning Briefing (Earth → Ship)',
           payload: {
-            author: 'Dr. Evelyn Reed (Lead Flight Surgeon, NASA JSC)',
+            author: 'Dr. Evelyn Reed (Lead Flight Surgeon, Mission Control)',
             message:
               'Ares crew: Solar forecast is clear for the next 72 hours. We acknowledge telemetry for Day 142. Note CMO Vance sleep logs: authorize 0.5 mg melatonin and enforce scheduled 8-hour crew sleep window.',
             sentAtDate: new Date(now - 1200000).toISOString(),

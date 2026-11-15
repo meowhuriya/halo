@@ -111,7 +111,7 @@ export const SplitView: React.FC = () => {
             <div className="flex items-center gap-2">
               <Monitor size={16} className="text-blue-400" />
               <span className="text-xs font-mono font-bold text-blue-300 tracking-wider uppercase">
-                Earth Operations · NASA JSC Mission Control
+                Earth Operations · Mission Control
               </span>
             </div>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20">

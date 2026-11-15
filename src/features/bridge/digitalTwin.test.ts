@@ -20,7 +20,7 @@ const BASE_CREW: CrewMember = {
 
 const BASE_CONFIG: MissionConfig = {
   id: 'current',
-  missionName: 'Ares V Mars Transit',
+  missionName: 'Ares Mars Transit',
   environmentId: 'transit',
   oneWayDelaySeconds: 846,
   missionStartDate: '2026-01-01',

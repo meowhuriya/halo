@@ -69,9 +69,9 @@ src/
 ```
 Stack: Vite · React 18 · TypeScript · Tailwind · Dexie · MediaPipe Tasks Vision · Web Speech API · Vitest.
 
-## Use of AI
+## Use of AI ("Super Intelligence" in the Space Apps form)
 
-AI coding assistants (Google Antigravity with Gemini and Claude models, and Anthropic's Claude) were used to generate and refactor code, tests and documentation from a human-written specification (`HALO_SPEC.md`). All medical thresholds were specified by the team, every feature was reviewed and tested by the team, and the voice in Emergency mode is the device's own text-to-speech. No AI-generated images or NASA branding are used.
+AI coding assistants (Google Antigravity with Gemini and Claude models, and Anthropic's Claude) were used to generate and refactor code, tests and documentation from a human-written specification (`HALO_SPEC.md`). The concept and feature set were developed by the team in dialogue with AI tools; all medical thresholds were specified and checked by the team, every feature was reviewed and tested by the team, and the voice in Emergency mode is the device's own text-to-speech. No AI-generated images or NASA branding are used.
 
 ## Honest limits
 

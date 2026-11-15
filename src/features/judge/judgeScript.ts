@@ -178,7 +178,7 @@ export function buildJudgeTourSteps(data: JudgeScriptData): JudgeTourStep[] {
       durationMs: 10000,
       spotlightTarget: '[data-testid="split-view"]',
       spotlightTitle: 'DUAL CONSOLE SPLIT VIEW (/SPLIT): SHIP & GROUND MISSION CONTROL',
-      spokenNarration: `In dual split view, the packet lands at NASA JSC Ground Console on Earth. The flight surgeon reviews the full SBAR incident report, and an uplink clinical directive begins its ${data.lightMinutes}-minute journey back to the ship.`,
+      spokenNarration: `In dual split view, the packet lands at the Mission Control console on Earth. The flight surgeon reviews the full SBAR incident report, and an uplink clinical directive begins its ${data.lightMinutes}-minute journey back to the ship.`,
       captionText: `Packet lands on Ground Console (/split view); flight-surgeon reply begins its ${data.lightMinutes}-minute journey back.`,
     },
   ];

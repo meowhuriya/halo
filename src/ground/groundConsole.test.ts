@@ -20,7 +20,7 @@ describe('Ground Console & Split Link Telemetry (§7.12)', () => {
     const packet = await transmitUplinkReply({
       title: 'Flight Surgeon Advisory: Melatonin Authorized',
       message: 'Prescribe 0.5 mg melatonin. Enforce 8h sleep window.',
-      author: 'Dr. Evelyn Reed (Flight Surgeon, NASA JSC)',
+      author: 'Dr. Evelyn Reed (Flight Surgeon, Mission Control)',
       oneWayDelaySeconds: oneWaySec,
       timeCompression: true,
       priority: 'NORMAL',
@@ -29,7 +29,7 @@ describe('Ground Console & Split Link Telemetry (§7.12)', () => {
     expect(packet.direction).toBe('uplink');
     expect(packet.type).toBe('REPLY');
     expect(packet.title).toContain('Flight Surgeon Advisory');
-    expect(packet.payload.author).toBe('Dr. Evelyn Reed (Flight Surgeon, NASA JSC)');
+    expect(packet.payload.author).toBe('Dr. Evelyn Reed (Flight Surgeon, Mission Control)');
     expect(packet.payload.message).toContain('0.5 mg melatonin');
     expect(packet.delivered).toBe(false);
 

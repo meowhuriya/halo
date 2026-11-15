@@ -254,8 +254,8 @@ export const GroundLinkView: React.FC<GroundLinkViewProps> = ({ isSplitView = fa
 
           <div className="flex items-center gap-2.5 text-right">
             <div>
-              <div className="text-sm font-black text-white">NASA JSC (Earth)</div>
-              <div className="text-[10px] font-mono text-blue-300">Houston Flight Surgeon</div>
+              <div className="text-sm font-black text-white">Mission Control (Earth)</div>
+              <div className="text-[10px] font-mono text-blue-300">Mission Control Flight Surgeon</div>
             </div>
             <div className="w-10 h-10 rounded-2xl bg-blue-500/20 border border-blue-400 flex items-center justify-center text-lg shadow-[0_0_15px_rgba(59,130,246,0.4)]">
               🌍
@@ -442,7 +442,7 @@ export const GroundLinkView: React.FC<GroundLinkViewProps> = ({ isSplitView = fa
 
           {uplinkInbox.length === 0 ? (
             <div className="text-center py-8 text-xs text-slate-400 font-mono">
-              Inbox empty. Replies from the Houston Flight Surgeon console arrive here.
+              Inbox empty. Replies from the Mission Control Flight Surgeon console arrive here.
             </div>
           ) : (
             <div className="space-y-2.5 max-h-[420px] overflow-y-auto pr-1">

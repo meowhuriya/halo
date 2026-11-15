@@ -175,7 +175,7 @@ export const GroundConsoleView: React.FC<GroundConsoleViewProps> = ({ isSplitVie
       await transmitUplinkReply({
         title: 'Flight Surgeon Clinical Advisory',
         message: replyText.trim(),
-        author: 'Dr. Evelyn Reed (Flight Surgeon, NASA JSC)',
+        author: 'Dr. Evelyn Reed (Flight Surgeon, Mission Control)',
         oneWayDelaySeconds: oneWayDelaySec,
         timeCompression,
         priority: replyPriority,
@@ -271,7 +271,7 @@ export const GroundConsoleView: React.FC<GroundConsoleViewProps> = ({ isSplitVie
           <div className="flex items-center gap-2 mb-1.5">
             <Monitor size={18} className="text-blue-400" />
             <span className="text-xs font-mono tracking-widest text-blue-300 uppercase font-bold">
-              NASA JSC · FLIGHT SURGEON CONSOLE (EARTH)
+              MISSION CONTROL · FLIGHT SURGEON CONSOLE (EARTH)
             </span>
             <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-blue-500/20 text-blue-300 border border-blue-400/30">
               §7.12
@@ -330,7 +330,7 @@ export const GroundConsoleView: React.FC<GroundConsoleViewProps> = ({ isSplitVie
         <div className="flex items-center justify-between text-xs font-mono">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-blue-400 shadow-[0_0_8px_#60a5fa]" />
-            <span className="text-blue-200 font-bold">EARTH · NASA JSC</span>
+            <span className="text-blue-200 font-bold">EARTH · MISSION CONTROL</span>
           </div>
           <div className="text-slate-400 text-[11px]">
             {primaryInFlight ? (

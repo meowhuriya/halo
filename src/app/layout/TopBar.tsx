@@ -67,7 +67,7 @@ export const TopBar: React.FC = () => {
                   <span className="font-extrabold text-base tracking-widest text-white leading-none">HALO</span>
                   <span className="text-[10px] uppercase font-mono px-1 py-0.2 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">v1.0</span>
                 </div>
-                <span className="text-[10px] text-slate-400 tracking-wider">NASA HEALTH COPILOT</span>
+                <span className="text-[10px] text-slate-400 tracking-wider">ASTRONAUT HEALTH CO-PILOT</span>
               </div>
             </Link>
 

@@ -2,6 +2,7 @@
   "name": "halo-astronaut-health",
   "private": true,
   "version": "1.0.0",
+  "description": "HALO — offline-first astronaut health co-pilot for NASA Space Apps 2026. Code, tests and docs were produced with AI assistance (Google Antigravity with Gemini/Claude models, and Anthropic Claude) from a human-written specification; see README \"Use of AI\".",
   "type": "module",
   "scripts": {
     "dev": "vite",
