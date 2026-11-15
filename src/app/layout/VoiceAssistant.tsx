@@ -15,6 +15,7 @@ import { speakOffline, unlockSpeech } from '../../utils/speech';
 import { createVoiceListener, isVoiceCommandSupported, type VoiceListener } from '../../utils/voiceCommands';
 import { chimeDone, chimeListen, chimeMiss } from '../../utils/chime';
 import { answerQuestion } from './assistantBrain';
+import { HaloBuddy } from '../../design/components/HaloBuddy';
 import { logSpokenReading, symptomAction, waitIntent } from './assistantActions';
 
 type Action = { say: string; go?: string; mode?: string };
@@ -296,7 +297,7 @@ export const VoiceAssistant: React.FC = () => {
           className="fixed bottom-24 right-4 sm:right-6 z-50 w-[min(94vw,24rem)] max-h-[70vh] flex flex-col rounded-3xl border border-white/15 bg-[#0F1B31]/97 backdrop-blur-xl shadow-2xl overflow-hidden"
         >
           <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10">
-            <span className={`halo-avatar w-10 h-10 ${state === 'speaking' ? 'halo-avatar--talking' : state === 'listening' ? 'halo-avatar--listening' : ''}`}><img src="/brand/halo-buddy.png" alt="" /></span>
+            <HaloBuddy state={state === 'off' ? 'idle' : state} size={40} />
             <div className="min-w-0">
               <div className="text-sm font-bold text-white leading-tight">HALO</div>
               <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
@@ -358,13 +359,13 @@ export const VoiceAssistant: React.FC = () => {
         aria-expanded={open}
         aria-label={open ? 'Close HALO assistant' : 'Open HALO assistant (press V)'}
         title="Talk to HALO · press V"
-        className={`fixed bottom-6 right-[108px] z-50 w-[64px] h-[64px] rounded-full border-2 flex items-center justify-center overflow-hidden transition-all duration-200 glove-target focus:outline-none focus:ring-4 focus:ring-cyan-400/40 bg-[#070C18] ${
+        className={`fixed bottom-6 right-[108px] z-50 w-[64px] h-[64px] rounded-full border-2 flex items-center justify-center transition-all duration-200 glove-target focus:outline-none focus:ring-4 focus:ring-cyan-400/40 bg-[#0B1628]/90 backdrop-blur ${
           state === 'listening' ? 'border-emerald-300 shadow-[0_0_0_8px_rgba(16,185,129,0.25),0_0_30px_rgba(16,185,129,0.8)]'
           : state === 'speaking' ? 'border-cyan-200 shadow-[0_0_24px_rgba(115,179,231,0.8)]'
           : open ? 'border-cyan-300 shadow-lg' : 'border-slate-500/70 hover:border-cyan-300 shadow-lg'
         }`}
       >
-        <span className={`halo-avatar w-[60px] h-[60px] pointer-events-none ${state === 'speaking' ? 'halo-avatar--talking' : state === 'listening' ? 'halo-avatar--listening' : 'halo-avatar--idle'}`}><img src="/brand/halo-buddy.png" alt="" /></span>
+        <HaloBuddy state={state === 'off' ? 'idle' : state} size={58} className="pointer-events-none" />
       </button>
     </>
   );

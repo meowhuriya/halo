@@ -148,31 +148,6 @@
   pointer-events: none;
 }
 
-/* ---------- HALO buddy avatar: alive, not static ---------- */
-.halo-avatar {
-  position: relative; display: inline-block; border-radius: 9999px; overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(156,201,255,0.25), 0 6px 20px rgba(0,0,0,0.45);
-  background: #070C18;
-}
-.halo-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 28%; transform: scale(1.35); display: block; }
-.halo-avatar--idle img { animation: buddyFloat 4.5s ease-in-out infinite; }
-.halo-avatar--listening { box-shadow: 0 0 0 2px rgba(16,185,129,0.9), 0 0 26px rgba(16,185,129,0.7); }
-.halo-avatar--listening img { animation: buddyLean 1.6s ease-in-out infinite; }
-.halo-avatar--talking { box-shadow: 0 0 0 2px rgba(156,201,255,0.95), 0 0 28px rgba(115,179,231,0.8); }
-.halo-avatar--talking img { animation: buddyTalk 0.9s ease-in-out infinite; }
-.halo-avatar::after { /* periodic blink: a soft dark sweep over the visor */
-  content: ''; position: absolute; left: 22%; right: 22%; top: 30%; height: 18%;
-  border-radius: 50%; background: rgba(7,12,24,0.85); opacity: 0; pointer-events: none;
-  animation: buddyBlink 5.2s linear infinite;
-}
-@keyframes buddyFloat { 0%,100% { transform: scale(1.35) translateY(0); } 50% { transform: scale(1.35) translateY(-3%); } }
-@keyframes buddyLean { 0%,100% { transform: scale(1.38) rotate(-3deg); } 50% { transform: scale(1.38) rotate(3deg); } }
-@keyframes buddyTalk { 0%,100% { transform: scale(1.35); } 50% { transform: scale(1.4) translateY(-1.5%); } }
-@keyframes buddyBlink { 0%, 94%, 100% { opacity: 0; } 96%, 98% { opacity: 1; } }
-@media (prefers-reduced-motion: reduce) {
-  .halo-avatar img, .halo-avatar::after { animation: none !important; }
-}
-
 /* ---------- Premium surface polish ---------- */
 .glass-panel {
   background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.03) 100%);
@@ -185,3 +160,51 @@ button, [role="button"] { transition: transform 160ms ease, box-shadow 160ms eas
 button:not(:disabled):active, [role="button"]:active { transform: translateY(1px) scale(0.99); }
 ::selection { background: rgba(115,179,231,0.35); }
 html { scroll-behavior: smooth; }
+
+/* ---------- HALO buddy (SVG character) ---------- */
+.halo-buddy { overflow: visible; display: block; }
+.halo-buddy .hb-halo-base { stroke: rgba(115,179,231,0.35); }
+.halo-buddy .hb-halo-light { stroke: #BFE3FF; filter: drop-shadow(0 0 4px rgba(156,201,255,0.9)); }
+.halo-buddy .hb-ear-light, .halo-buddy .hb-antenna-light { fill: #9CDCFF; filter: drop-shadow(0 0 3px rgba(156,220,255,0.9)); }
+.halo-buddy .hb-ambient { opacity: 0.35; }
+.halo-buddy .hb-eyes-round, .halo-buddy .hb-eyes-think { opacity: 0; }
+.halo-buddy .hb-lid { opacity: 0; transform-origin: 64px 59px; }
+
+/* idle: gentle float, slow halo breathing, occasional blink */
+.halo-buddy--idle { animation: hbFloat 4.5s ease-in-out infinite; }
+.halo-buddy--idle .hb-halo-light { animation: hbBreathe 3s ease-in-out infinite; }
+.halo-buddy--idle .hb-lid { animation: hbBlink 5.5s linear infinite; }
+
+/* listening: halo turns green and tightens, eyes go round and attentive */
+.halo-buddy--listening .hb-halo-base { stroke: rgba(16,185,129,0.4); }
+.halo-buddy--listening .hb-halo-light { stroke: #6EE7B7; filter: drop-shadow(0 0 6px rgba(16,185,129,0.95)); animation: hbPulseFast 1s ease-in-out infinite; }
+.halo-buddy--listening .hb-eyes-happy { opacity: 0; }
+.halo-buddy--listening .hb-eyes-round { opacity: 1; }
+.halo-buddy--listening .hb-ear-light { fill: #6EE7B7; }
+.halo-buddy--listening { animation: hbLean 1.8s ease-in-out infinite; }
+
+/* thinking: amber halo, one eye narrowed, dots drift */
+.halo-buddy--thinking .hb-halo-light { stroke: #FCD34D; filter: drop-shadow(0 0 6px rgba(251,191,36,0.9)); animation: hbBreathe 1.2s ease-in-out infinite; }
+.halo-buddy--thinking .hb-eyes-happy { opacity: 0; }
+.halo-buddy--thinking .hb-eyes-think { opacity: 1; }
+.halo-buddy--thinking .hb-think-dots circle { animation: hbDots 1.2s ease-in-out infinite; }
+.halo-buddy--thinking .hb-think-dots circle:nth-child(2) { animation-delay: 0.2s; }
+.halo-buddy--thinking .hb-think-dots circle:nth-child(3) { animation-delay: 0.4s; }
+
+/* speaking: light travels around the halo, eyes bob with the voice */
+.halo-buddy--speaking .hb-halo-base { stroke: rgba(156,201,255,0.55); }
+.halo-buddy--speaking .hb-halo-light { stroke: #FFFFFF; stroke-width: 4; stroke-dasharray: 34 152; animation: hbOrbit 1.4s linear infinite; filter: drop-shadow(0 0 7px rgba(156,201,255,1)); }
+.halo-buddy--speaking .hb-eyes-happy { animation: hbTalk 0.55s ease-in-out infinite; transform-origin: 64px 59px; }
+.halo-buddy--speaking .hb-ambient { opacity: 0.6; }
+
+@keyframes hbFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes hbLean { 0%,100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+@keyframes hbBreathe { 0%,100% { opacity: 0.75; } 50% { opacity: 1; } }
+@keyframes hbPulseFast { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
+@keyframes hbBlink { 0%, 93%, 100% { opacity: 0; transform: scaleY(0); } 95%, 97% { opacity: 1; transform: scaleY(1); } }
+@keyframes hbDots { 0%,100% { transform: translateY(0); opacity: 0.4; } 50% { transform: translateY(-3px); opacity: 1; } }
+@keyframes hbOrbit { to { stroke-dashoffset: -186; } }
+@keyframes hbTalk { 0%,100% { transform: translateY(0) scaleY(1); } 50% { transform: translateY(-1.5px) scaleY(0.85); } }
+@media (prefers-reduced-motion: reduce) {
+  .halo-buddy, .halo-buddy * { animation: none !important; }
+}
