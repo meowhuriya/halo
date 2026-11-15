@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
+
+const Twin3D = lazy(() => import('./Twin3D'));
 import {
   AlertTriangle,
   Bone,
@@ -125,6 +127,44 @@ export const DigitalTwinSvg: React.FC<DigitalTwinSvgProps> = ({
   const bloodVis = getRegionVisual(regions.blood.status);
   const bonesVis = getRegionVisual(regions.bones.status);
 
+  // ---- Hologram: perspective tilt that follows the pointer, idle turn, expand on click ----
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [hover, setHover] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [threeD, setThreeD] = useState(false);
+  const webglOk = typeof document !== 'undefined' && (() => { try { const c = document.createElement('canvas'); return Boolean(c.getContext('webgl2') || c.getContext('webgl')); } catch { return false; } })();
+  const reduceMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    const el = stageRef.current; if (!el || reduceMotion) return;
+    const r = el.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;   // -0.5 .. 0.5
+    const py = (e.clientY - r.top) / r.height - 0.5;
+    const max = expanded ? 22 : 14;
+    setTilt({ x: -py * max, y: px * max });
+  }, [expanded, reduceMotion]);
+  const onPointerLeave = useCallback(() => { setHover(false); setTilt({ x: 0, y: 0 }); }, []);
+
+  // Device tilt on phones (no permission prompt on Android; iOS needs a gesture, so we just try quietly)
+  useEffect(() => {
+    if (reduceMotion || typeof window === 'undefined' || !('DeviceOrientationEvent' in window)) return;
+    const onTilt = (e: DeviceOrientationEvent) => {
+      if (hover) return;
+      const g = e.gamma ?? 0, b = e.beta ?? 0;
+      setTilt({ x: Math.max(-12, Math.min(12, (b - 45) * -0.25)), y: Math.max(-12, Math.min(12, g * 0.3)) });
+    };
+    window.addEventListener('deviceorientation', onTilt);
+    return () => window.removeEventListener('deviceorientation', onTilt);
+  }, [hover, reduceMotion]);
+
+  useEffect(() => {
+    if (!expanded) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setExpanded(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [expanded]);
+
   const handleSvgKeyDown = (regionId: BodySystemId, e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -135,11 +175,34 @@ export const DigitalTwinSvg: React.FC<DigitalTwinSvgProps> = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
       {/* Left: Layered Anatomical Hologram SVG */}
-      <div className="md:col-span-6 flex justify-center">
-        <div className="relative w-full max-w-[340px] aspect-[340/480] flex items-center justify-center rounded-3xl bg-gradient-to-b from-cyan-500/[0.05] via-slate-950/60 to-blue-950/20 border border-white/10 p-3 shadow-[inset_0_0_40px_rgba(115, 179, 231,0.06)]">
+      <div className={`md:col-span-6 flex justify-center ${expanded ? 'holo-expanded-slot' : ''}`}>
+        {expanded && <button type="button" aria-label="Close hologram" className="holo-backdrop" onClick={() => setExpanded(false)} />}
+        <div
+          ref={stageRef}
+          className={`holo-stage relative w-full max-w-[340px] aspect-[340/480] rounded-3xl ${expanded ? 'holo-stage--expanded' : ''} ${hover ? 'holo-stage--hover' : ''}`}
+          onPointerMove={onPointerMove}
+          onPointerEnter={() => setHover(true)}
+          onPointerLeave={onPointerLeave}
+          onDoubleClick={() => { setExpanded((v) => !v); setThreeD(webglOk); }}
+          title={expanded ? 'Double-click or press Esc to close' : 'Move to turn · double-click to enlarge'}
+        >
+          <div className="holo-scanlines" aria-hidden />
+          {expanded && threeD && webglOk ? (
+            <div className="absolute inset-0 rounded-3xl overflow-hidden">
+              <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-xs text-cyan-200/80 tracking-widest uppercase">Projecting hologram…</div>}>
+                <Twin3D regions={regions} selectedRegionId={selectedRegionId} onSelectRegion={onSelectRegion} />
+              </Suspense>
+            </div>
+          ) : null}
+          <div
+            className="holo-body"
+            style={{ transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`, visibility: expanded && threeD && webglOk ? 'hidden' : 'visible' }}
+            data-hidden={expanded && threeD && webglOk ? 'true' : undefined}
+          >
+          <div className="holo-spin">
           <svg
             viewBox="0 0 340 480"
-            className="w-full h-full select-none overflow-visible"
+            className={`w-full h-full select-none overflow-visible holo-svg ${selectedRegionId ? 'holo-has-selection' : ''}`}
             role="img"
             aria-label="Interactive Astronaut Digital Twin physiological hologram"
           >
@@ -232,6 +295,7 @@ export const DigitalTwinSvg: React.FC<DigitalTwinSvgProps> = ({
             <g
               data-testid="twin-svg-skin"
               data-region="skin"
+              data-selected={selectedRegionId === 'skin' ? 'true' : undefined}
               role="button"
               tabIndex={0}
               aria-label={`Skin and Radiation region, status ${skinVis.label}`}
@@ -272,6 +336,7 @@ export const DigitalTwinSvg: React.FC<DigitalTwinSvgProps> = ({
             <g
               data-testid="twin-svg-bones"
               data-region="bones"
+              data-selected={selectedRegionId === 'bones' ? 'true' : undefined}
               role="button"
               tabIndex={0}
               aria-label={`Bones and Muscle region, status ${bonesVis.label}`}
@@ -326,6 +391,7 @@ export const DigitalTwinSvg: React.FC<DigitalTwinSvgProps> = ({
             <g
               data-testid="twin-svg-blood"
               data-region="blood"
+              data-selected={selectedRegionId === 'blood' ? 'true' : undefined}
               role="button"
               tabIndex={0}
               aria-label={`Blood and Metabolic region, status ${bloodVis.label}`}
@@ -360,6 +426,7 @@ export const DigitalTwinSvg: React.FC<DigitalTwinSvgProps> = ({
             <g
               data-testid="twin-svg-lungs"
               data-region="lungs"
+              data-selected={selectedRegionId === 'lungs' ? 'true' : undefined}
               role="button"
               tabIndex={0}
               aria-label={`Lungs and Oxygenation region, status ${lungsVis.label}`}
@@ -396,6 +463,7 @@ export const DigitalTwinSvg: React.FC<DigitalTwinSvgProps> = ({
             <g
               data-testid="twin-svg-heart"
               data-region="heart"
+              data-selected={selectedRegionId === 'heart' ? 'true' : undefined}
               role="button"
               tabIndex={0}
               aria-label={`Heart and Cardiovascular region, status ${heartVis.label}`}
@@ -426,6 +494,7 @@ export const DigitalTwinSvg: React.FC<DigitalTwinSvgProps> = ({
             <g
               data-testid="twin-svg-brain"
               data-region="brain"
+              data-selected={selectedRegionId === 'brain' ? 'true' : undefined}
               role="button"
               tabIndex={0}
               aria-label={`Brain and Neuro-Cognition region, status ${brainVis.label}`}
@@ -453,6 +522,7 @@ export const DigitalTwinSvg: React.FC<DigitalTwinSvgProps> = ({
             <g
               data-testid="twin-svg-eyes"
               data-region="eyes"
+              data-selected={selectedRegionId === 'eyes' ? 'true' : undefined}
               role="button"
               tabIndex={0}
               aria-label={`Eyes and Optic Nerve region, status ${eyesVis.label}`}
@@ -477,6 +547,24 @@ export const DigitalTwinSvg: React.FC<DigitalTwinSvgProps> = ({
               <circle cx="182" cy="70" r="1.8" fill={eyesVis.stroke} />
             </g>
           </svg>
+          </div>
+          </div>
+          <div className="holo-base" aria-hidden><span /></div>
+          <div className="absolute right-2.5 top-2.5 z-[3] flex gap-1.5">
+            {expanded && webglOk && (
+              <button type="button" onClick={() => setThreeD((v) => !v)} className="holo-expand-btn" aria-pressed={threeD}>
+                {threeD ? '2D' : '3D'}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => { if (expanded) { setExpanded(false); } else { setExpanded(true); setThreeD(webglOk); } }}
+              className="holo-expand-btn"
+              aria-pressed={expanded}
+            >
+              {expanded ? 'Close' : '3D Hologram'}
+            </button>
+          </div>
         </div>
       </div>
 

@@ -76,6 +76,7 @@ export default defineConfig({
           motion: ['framer-motion'],
           icons: ['lucide-react'],
           db: ['dexie'],
+          three: ['three', '@react-three/fiber', '@react-three/drei'],
         },
       },
     },
