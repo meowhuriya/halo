@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'icons/*.png', 'icons/*.svg', 'fonts/*'],
+      includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'icons/*.png', 'icons/*.svg', 'brand/*', 'fonts/*'],
       manifest: {
         name: 'HALO — Health Autonomy for Long-duration Operations',
         short_name: 'HALO',
@@ -41,7 +41,7 @@ export default defineConfig({
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 20 * 1024 * 1024,
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2,json,wasm,task}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,jpg,woff2,json,wasm,task}'],
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.origin === self.location.origin,

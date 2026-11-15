@@ -1,8 +1,8 @@
+import { HaloCover } from '../../design/components/HaloCover';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   UserPlus, 
-  Rocket, 
   Sparkles, 
   Globe, 
   Clock, 
@@ -166,35 +166,27 @@ export const OnboardingView: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-fade-in py-4">
       
-      {/* Top Banner & Quick Demo Loader */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl bg-gradient-to-br from-cyan-950/40 via-white/[0.03] to-blue-950/30 border border-cyan-500/30 shadow-[0_0_30px_-5px_rgba(115, 179, 231,0.15)]">
+      {/* Notion-style cover: full-bleed, scrolls away */}
+      <HaloCover className="-mt-10" />
+
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 -mt-2">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-xs font-mono font-semibold uppercase tracking-wider mb-2">
-            <Rocket size={13} />
-            Autonomous Deep-Space Health System
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
-            <img src="/icons/halo-icon.svg" alt="" className="w-10 h-10 rounded-xl" />
-            HALO
-          </h1>
-          <p className="text-base text-cyan-100 mt-1 font-medium">An astronaut's home buddy, even this far from home.</p>
-          <p className="text-sm text-slate-300 mt-1">
-            Set up your crew profile, environment and light delay — or load the demo mission.
+          <p className="text-xl sm:text-2xl font-semibold text-white leading-tight">Welcome aboard.</p>
+          <p className="text-sm sm:text-base text-slate-300/90 mt-2 max-w-xl">
+            Measures what matters, explains it in plain words, and talks the crew through an emergency when Earth is 22 light-minutes away.
           </p>
         </div>
-
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
           <BigButton
             variant="primary"
             size="md"
             icon={<Play size={16} className="text-slate-950 fill-slate-950" />}
             onClick={() => void startTour()}
             data-testid="onboarding-watch-judge-tour-btn"
-            className="shadow-[0_0_20px_rgba(115, 179, 231,0.4)]"
+            className="shadow-[0_0_24px_rgba(115,179,231,0.45)]"
           >
-            ▶ Watch HALO save a crew (90 s)
+            Watch HALO save a crew (90 s)
           </BigButton>
-
           <BigButton
             variant="secondary"
             size="md"
@@ -207,6 +199,8 @@ export const OnboardingView: React.FC = () => {
           </BigButton>
         </div>
       </div>
+
+      <p className="text-sm text-slate-400 px-1">Or set up your own crew profile, environment and light delay below.</p>
 
       <form onSubmit={handleSaveAndStart} className="space-y-8">
         

@@ -82,12 +82,34 @@ export async function answerQuestion(text: string, crewId: number | undefined, s
   const t = text.toLowerCase();
   const asks = (...w: string[]) => w.some((x) => new RegExp(`(^|\\s)${x}(\\s|$)`).test(t));
 
-  // "read it out loud" / "read this"
-  if (asks('read it', 'read this', 'read that', 'read out', 'read aloud', 'read the screen', 'read me')) {
-    const body = (screenText ?? '').replace(/\s+/g, ' ').trim();
-    if (!body) return { say: "There's nothing on this screen I can read yet." };
-    const clipped = body.length > 700 ? body.slice(0, 700) + '. That is the main content.' : body;
-    return { say: clipped };
+  // Messages from Earth: "read the message from Earth", "any messages", "what did the flight surgeon say"
+  if (asks('message', 'messages', 'inbox', 'unread', 'reply', 'replies', 'briefing') || t.includes('flight surgeon say') || t.includes('from earth') || t.includes('from ground')) {
+    const inbound = (await db.groundPackets.where('direction').equals('uplink').toArray())
+      .filter((p) => p.delivered)
+      .sort((a, b) => b.arrivalAt - a.arrivalAt);
+    if (inbound.length === 0) return { say: 'No messages from Earth have arrived yet.', go: '/groundlink' };
+    const unread = inbound.filter((p) => !p.read);
+    const pick = unread[0] ?? inbound[0];
+    const author = typeof pick.payload.author === 'string' ? pick.payload.author : 'Mission Control';
+    const body = typeof pick.payload.message === 'string' ? pick.payload.message
+      : typeof pick.payload.summary === 'string' ? pick.payload.summary : '';
+    if (pick.id != null && !pick.read) await db.groundPackets.update(pick.id, { read: true });
+    const lead = unread.length > 1 ? `You have ${unread.length} unread messages. The latest is from ${author}: ` : unread.length === 1 ? `One unread message, from ${author}: ` : `Latest message, from ${author}: `;
+    return { say: `${lead}${pick.title}. ${body}`.trim(), go: '/groundlink' };
+  }
+
+  // "read it out loud" / "read this": the main heading and first paragraphs only, not every chip on the screen
+  if (asks('read it', 'read this', 'read that', 'read out', 'read aloud', 'read the screen', 'read me', 'read the page')) {
+    const main = typeof document !== 'undefined' ? document.querySelector('main') : null;
+    let text = '';
+    if (main) {
+      const heading = main.querySelector('h1, h2');
+      const paras = Array.from(main.querySelectorAll('p')).map((p) => (p as HTMLElement).innerText.trim()).filter((x) => x.length > 30).slice(0, 3);
+      text = [heading ? (heading as HTMLElement).innerText.trim() : '', ...paras].filter(Boolean).join('. ');
+    }
+    if (!text) text = (screenText ?? '').replace(/\s+/g, ' ').trim().slice(0, 400);
+    if (!text) return { say: "There's nothing on this screen I can read yet." };
+    return { say: text.length > 450 ? text.slice(0, 450) + '…' : text };
   }
 
   // "what's wrong" / "why am I flagged" / "any alerts" / "what should I do"

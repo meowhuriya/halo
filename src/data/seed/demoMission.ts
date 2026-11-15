@@ -509,7 +509,7 @@ export async function seedDemoMission(): Promise<void> {
           payload: {
             author: 'Dr. Evelyn Reed (Lead Flight Surgeon, Mission Control)',
             message:
-              'Ares crew: Solar forecast is clear for the next 72 hours. We acknowledge telemetry for Day 142. Note CMO Vance sleep logs: authorize 0.5 mg melatonin and enforce scheduled 8-hour crew sleep window.',
+              'Ares crew: Solar forecast is clear for the next 72 hours. We acknowledge telemetry for Day 142. Note CMO Vance sleep logs: sleep aid authorized per the onboard formulary; enforce the scheduled 8-hour crew sleep window.',
             sentAtDate: new Date(now - 1200000).toISOString(),
           },
           sentAt: now - 1200000,

@@ -15,6 +15,7 @@ import { speakOffline, unlockSpeech } from '../../utils/speech';
 import { createVoiceListener, isVoiceCommandSupported, type VoiceListener } from '../../utils/voiceCommands';
 import { chimeDone, chimeListen, chimeMiss } from '../../utils/chime';
 import { answerQuestion } from './assistantBrain';
+import { logSpokenReading, symptomAction, waitIntent } from './assistantActions';
 
 type Action = { say: string; go?: string; mode?: string };
 
@@ -93,7 +94,7 @@ export function planAssistantReply(
     return { say: `Hello ${ctx.crewName.split(' ')[0]}. Readiness is ${ctx.readiness} percent. What do you need?` };
   }
   return {
-    say: "I didn't catch that. Try: open the eye test, start a heart scan, how's my readiness, what's my last heart rate, why is my sleep flagged, what is SANS, read this out loud, or emergency.",
+    say: "I didn't catch that. You can tell me a reading like 'blood pressure 118 over 76' or 'I slept 5 hours', a symptom like 'my vision is blurry', or ask: how's my readiness, what is SANS, read the message from Earth, or say emergency.",
   };
 }
 
@@ -101,6 +102,8 @@ type Turn = { who: 'you' | 'halo'; text: string };
 
 const SUGGESTIONS = [
   "How's my readiness?",
+  'Log blood pressure 118 over 76',
+  'I slept 5 hours',
   'Open the eye test',
   'Start a heart scan',
   "What's my last heart rate?",
@@ -146,6 +149,21 @@ export const VoiceAssistant: React.FC = () => {
     setState('thinking');
     listenerRef.current?.stop();
     void (async () => {
+      // 0) "wait" / "stop" / "I'm back" — pause without nagging
+      const w = waitIntent(transcript);
+      if (w === 'stop') { window.speechSynthesis?.cancel(); setTurns((t) => [...t.slice(-11), { who: 'halo', text: 'Okay.' }]); setState('off'); return; }
+      if (w === 'wait') { window.speechSynthesis?.cancel(); say("Of course. Take your time, I'm here. Tap the mic or type when you're ready."); return; }
+      if (w === 'resume') { say("I'm listening. What do you need?"); return; }
+
+      // 1) Symptoms and emergencies come before anything else
+      const sym = symptomAction(transcript);
+      if (sym) { chimeDone(); say(sym.say); if (sym.go) navigate(sym.go); return; }
+
+      // 2) Spoken readings: evaluate with the rules engine and save
+      const logged = await logSpokenReading(transcript, m.crew?.id, m.config?.missionDay ?? 1, m.environment?.gravityG ?? 0).catch(() => null);
+      if (logged) { chimeDone(); say(logged.say); if (logged.logged) { void m.refreshMission?.(); if (logged.go) navigate(logged.go); } return; }
+
+      // 3) Health / knowledge questions
       const main = document.querySelector('main');
       const screenText = main ? (main as HTMLElement).innerText : '';
       const qa = await answerQuestion(transcript, m.crew?.id, screenText).catch(() => null);
@@ -278,7 +296,7 @@ export const VoiceAssistant: React.FC = () => {
           className="fixed bottom-24 right-4 sm:right-6 z-50 w-[min(94vw,24rem)] max-h-[70vh] flex flex-col rounded-3xl border border-white/15 bg-[#0F1B31]/97 backdrop-blur-xl shadow-2xl overflow-hidden"
         >
           <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10">
-            <img src="/icons/halo-buddy.svg" alt="" className="w-9 h-9" />
+            <span className={`halo-avatar w-10 h-10 ${state === 'speaking' ? 'halo-avatar--talking' : state === 'listening' ? 'halo-avatar--listening' : ''}`}><img src="/brand/halo-buddy.png" alt="" /></span>
             <div className="min-w-0">
               <div className="text-sm font-bold text-white leading-tight">HALO</div>
               <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
@@ -340,13 +358,13 @@ export const VoiceAssistant: React.FC = () => {
         aria-expanded={open}
         aria-label={open ? 'Close HALO assistant' : 'Open HALO assistant (press V)'}
         title="Talk to HALO · press V"
-        className={`fixed bottom-6 right-[108px] z-50 w-[64px] h-[64px] rounded-full border-2 flex items-center justify-center transition-all duration-200 glove-target focus:outline-none focus:ring-4 focus:ring-cyan-400/40 bg-[#0F1B31] ${
+        className={`fixed bottom-6 right-[108px] z-50 w-[64px] h-[64px] rounded-full border-2 flex items-center justify-center overflow-hidden transition-all duration-200 glove-target focus:outline-none focus:ring-4 focus:ring-cyan-400/40 bg-[#070C18] ${
           state === 'listening' ? 'border-emerald-300 shadow-[0_0_0_8px_rgba(16,185,129,0.25),0_0_30px_rgba(16,185,129,0.8)]'
           : state === 'speaking' ? 'border-cyan-200 shadow-[0_0_24px_rgba(115,179,231,0.8)]'
           : open ? 'border-cyan-300 shadow-lg' : 'border-slate-500/70 hover:border-cyan-300 shadow-lg'
         }`}
       >
-        <img src="/icons/halo-buddy.svg" alt="" className="w-12 h-12 pointer-events-none" />
+        <span className={`halo-avatar w-[60px] h-[60px] pointer-events-none ${state === 'speaking' ? 'halo-avatar--talking' : state === 'listening' ? 'halo-avatar--listening' : 'halo-avatar--idle'}`}><img src="/brand/halo-buddy.png" alt="" /></span>
       </button>
     </>
   );

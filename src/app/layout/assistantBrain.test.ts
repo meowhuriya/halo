@@ -1,3 +1,4 @@
+import 'fake-indexeddb/auto';
 import { describe, it, expect } from 'vitest';
 import { findTopic, answerQuestion } from './assistantBrain';
 
@@ -16,9 +17,14 @@ describe('assistant brain (offline Q&A)', () => {
     const c = await answerQuestion('why does sleep change in space', undefined);
     expect(c?.say.length).toBeGreaterThan(20);
   });
-  it('reads the screen on request', async () => {
+  it('reads the screen on request (fallback text when no DOM)', async () => {
     const a = await answerQuestion('read this out loud', undefined, 'Readiness 72 percent. Two alerts.');
     expect(a?.say).toContain('Readiness 72');
+  });
+  it('routes Earth-message questions to the inbox, not the screen reader', async () => {
+    const a = await answerQuestion('read out the unread message from Earth', undefined, 'IRRELEVANT SCREEN TEXT');
+    expect(a?.say).not.toContain('IRRELEVANT');
+    expect(a?.go).toBe('/groundlink');
   });
   it('returns null for pure navigation so commands still work', async () => {
     expect(await answerQuestion('open the bridge', undefined)).toBeNull();

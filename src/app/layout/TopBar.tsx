@@ -59,15 +59,15 @@ export const TopBar: React.FC = () => {
           {/* Left: Logo & Crew Badge */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <Link to="/" className="flex items-center gap-2 group focus:outline-none">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400/20 to-blue-600/30 border border-cyan-400/40 flex items-center justify-center shadow-[0_0_15px_-3px_rgba(115, 179, 231,0.3)] group-hover:border-cyan-300 transition-colors">
-                <span className="font-mono font-extrabold text-cyan-300 text-sm tracking-wider">H</span>
+              <div className="w-10 h-10 rounded-xl overflow-hidden shadow-[0_0_15px_-3px_rgba(115,179,231,0.4)] group-hover:shadow-[0_0_18px_-2px_rgba(115,179,231,0.7)] transition-shadow">
+                <img src="/icons/halo-icon.svg" alt="HALO" className="w-full h-full" />
               </div>
               <div className="hidden md:flex flex-col">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-extrabold text-base tracking-widest text-white leading-none">HALO</span>
+                  <span className="font-extrabold text-base tracking-[0.18em] text-white leading-none">HALO</span>
                   <span className="text-[10px] uppercase font-mono px-1 py-0.2 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">v1.0</span>
                 </div>
-                <span className="text-[10px] text-slate-400 tracking-wider">HOME BUDDY · HEALTH CO-PILOT</span>
+                <span className="text-[10px] text-slate-400 tracking-wider"><span className="xl:hidden">AN ASTRONAUT'S HOME BUDDY</span><span className="hidden xl:inline">AN ASTRONAUT'S HOME BUDDY, EVEN THIS FAR FROM HOME</span></span>
               </div>
             </Link>
 

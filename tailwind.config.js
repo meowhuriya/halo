@@ -35,8 +35,10 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['"Public Sans"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
-        mono: ['"JetBrains Mono"', '"SF Mono"', 'Menlo', 'Consolas', 'ui-monospace', 'monospace'],
+        sans: ['"Inter"', '"Public Sans"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        // "mono" is used across the UI for labels and readouts. Keep it the same clean
+        // UI face as sans; numbers stay aligned via tabular figures (see index.css).
+        mono: ['"Inter"', '"Public Sans"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
       },
       minHeight: {
         tap: "56px",

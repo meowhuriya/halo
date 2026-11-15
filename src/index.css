@@ -1,6 +1,5 @@
 /* Public Sans (USWDS typeface) if installed; otherwise the system UI font, as US federal sites render on Mac/Windows */
 
-@import "@fontsource/jetbrains-mono/index.css";
 
 @tailwind base;
 @tailwind components;
@@ -14,17 +13,24 @@
   body {
     background-color: #0B1628;
     color: #F1F5F9;
-    font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Inter', 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     letter-spacing: 0;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'cv11', 'ss01', 'calt';
     min-height: 100vh;
     overflow-x: hidden;
   }
 
-  /* JetBrains Mono tabular numbers for all numerical readouts */
+  /* Readouts and labels: same UI face, tabular figures so numbers stay aligned.
+     Softer tracking than the old monospace labels. */
   .font-mono, [data-num] {
-    font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, ui-monospace, monospace;
-    font-variant-numeric: tabular-nums;
+    font-family: 'Inter', 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-variant-numeric: tabular-nums lining-nums;
+    letter-spacing: 0.01em;
   }
+  /* uppercase micro-labels were tracked for monospace; relax them */
+  .font-mono.uppercase, .uppercase.font-mono { letter-spacing: 0.08em; }
+  .tracking-widest { letter-spacing: 0.14em !important; }
 }
 
 /* Glass panel design token from §4 */
@@ -123,3 +129,59 @@
 /* hide horizontal scrollbar on chip rows */
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+
+
+
+
+
+/* ---------- HALO cover banner ---------- */
+.halo-cover { background: #05080F; }
+.halo-cover-img {
+  display: block; width: 100%; height: clamp(200px, 32vw, 420px);
+  object-fit: cover; object-position: center 40%;
+}
+@media (max-width: 640px) { .halo-cover-img { object-position: 62% 40%; } }
+/* fade the bottom of the art into the page so it reads as one surface */
+.halo-cover-fade {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 38%;
+  background: linear-gradient(180deg, rgba(11,22,40,0) 0%, rgba(11,22,40,0.65) 70%, #0B1628 100%);
+  pointer-events: none;
+}
+
+/* ---------- HALO buddy avatar: alive, not static ---------- */
+.halo-avatar {
+  position: relative; display: inline-block; border-radius: 9999px; overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(156,201,255,0.25), 0 6px 20px rgba(0,0,0,0.45);
+  background: #070C18;
+}
+.halo-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 28%; transform: scale(1.35); display: block; }
+.halo-avatar--idle img { animation: buddyFloat 4.5s ease-in-out infinite; }
+.halo-avatar--listening { box-shadow: 0 0 0 2px rgba(16,185,129,0.9), 0 0 26px rgba(16,185,129,0.7); }
+.halo-avatar--listening img { animation: buddyLean 1.6s ease-in-out infinite; }
+.halo-avatar--talking { box-shadow: 0 0 0 2px rgba(156,201,255,0.95), 0 0 28px rgba(115,179,231,0.8); }
+.halo-avatar--talking img { animation: buddyTalk 0.9s ease-in-out infinite; }
+.halo-avatar::after { /* periodic blink: a soft dark sweep over the visor */
+  content: ''; position: absolute; left: 22%; right: 22%; top: 30%; height: 18%;
+  border-radius: 50%; background: rgba(7,12,24,0.85); opacity: 0; pointer-events: none;
+  animation: buddyBlink 5.2s linear infinite;
+}
+@keyframes buddyFloat { 0%,100% { transform: scale(1.35) translateY(0); } 50% { transform: scale(1.35) translateY(-3%); } }
+@keyframes buddyLean { 0%,100% { transform: scale(1.38) rotate(-3deg); } 50% { transform: scale(1.38) rotate(3deg); } }
+@keyframes buddyTalk { 0%,100% { transform: scale(1.35); } 50% { transform: scale(1.4) translateY(-1.5%); } }
+@keyframes buddyBlink { 0%, 94%, 100% { opacity: 0; } 96%, 98% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .halo-avatar img, .halo-avatar::after { animation: none !important; }
+}
+
+/* ---------- Premium surface polish ---------- */
+.glass-panel {
+  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.03) 100%);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 30px -12px rgba(0,0,0,0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+button, [role="button"] { transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease, border-color 160ms ease; }
+button:not(:disabled):active, [role="button"]:active { transform: translateY(1px) scale(0.99); }
+::selection { background: rgba(115,179,231,0.35); }
+html { scroll-behavior: smooth; }
