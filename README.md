@@ -3,7 +3,7 @@
 **NASA Space Apps Challenge 2026 · Challenge: "Health monitoring software for astronauts" (Brazilian Space Agency)**
 
 **Live app:** https://halo-meowenor.vercel.app/
-**Team:** _TEAM NAME_ · Hyderabad, India
+**Team:** _Lynxstation_ · Hyderabad, India
 
 > On a Mars mission the flight surgeon is up to 22 light-minutes away. HALO is an offline-first health co-pilot that lets astronauts measure, understand and act on their own health — and talks the crew through an emergency when Earth cannot answer in time.
 
