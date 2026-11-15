@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMission } from '../../app/MissionContext';
 import { db, type CrewMember, type PersonalBaseline } from '../../data/db';
-import { getLocalVoice, speakOffline } from '../../utils/speech';
+import { getLocalVoice, speakOffline, unlockSpeech } from '../../utils/speech';
 import { createVoiceListener, isVoiceCommandSupported, matchIntent, type VoiceListener } from '../../utils/voiceCommands';
 import { CprCoachProtocol } from './CprCoachProtocol';
 import { ChestPainProtocol } from './ChestPainProtocol';
@@ -367,7 +367,7 @@ export const EmergencyView: React.FC = () => {
             <button
               type="button"
               data-testid="voice-commands-toggle"
-              onClick={() => setVoiceCommandsOn((v) => !v)}
+              onClick={() => { unlockSpeech(); setVoiceCommandsOn((v) => !v); }}
               aria-pressed={voiceCommandsOn}
               className={`min-h-[56px] px-5 rounded-xl border-2 font-bold tracking-wide transition-all ${
                 voiceCommandsOn

@@ -79,6 +79,23 @@ export function waitForVoices(timeoutMs = 1500): Promise<void> {
   return voicesReady;
 }
 
+/**
+ * Chrome only lets a page speak after a user gesture. Call this from the
+ * tap/keypress that starts a listening session: it speaks a silent utterance,
+ * which unlocks speechSynthesis for the replies that follow asynchronously.
+ */
+let unlocked = false;
+export function unlockSpeech(): void {
+  if (unlocked || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+  try {
+    const u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0;
+    window.speechSynthesis.speak(u);
+    window.speechSynthesis.getVoices();
+    unlocked = true;
+  } catch { /* ignore */ }
+}
+
 export function speakOffline(
   text: string,
   options: SpeakOptions = {}
@@ -89,7 +106,7 @@ export function speakOffline(
   }
 
   const begin = () => {
-    window.speechSynthesis.cancel();
+    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = options.rate ?? 0.95;
     utterance.pitch = options.pitch ?? 1.0;
@@ -107,7 +124,13 @@ export function speakOffline(
   };
 
   try {
-    void waitForVoices().then(begin).catch((err) => options.onError?.(err));
+    // Speak synchronously when voices are already loaded (keeps the user-gesture
+    // activation Chrome requires); only wait on the very first call after load.
+    if (window.speechSynthesis.getVoices().length > 0) {
+      begin();
+    } else {
+      void waitForVoices().then(begin).catch((err) => options.onError?.(err));
+    }
     return { spoken: true, text };
   } catch (err) {
     options.onError?.(err);

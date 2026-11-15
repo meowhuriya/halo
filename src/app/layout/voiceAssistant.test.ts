@@ -22,6 +22,12 @@ describe('HALO voice assistant', () => {
   it('goes to emergency on collapse phrasing', () => {
     expect(planAssistantReply('he collapsed', ctx).go).toBe('/emergency');
   });
+  it('does not match words hidden inside other words', () => {
+    expect(planAssistantReply('this is a test', ctx).say).not.toContain('Hello');
+    expect(planAssistantReply('what should I do today', ctx).say).toContain('You can say');
+    expect(planAssistantReply('open the eye test please', ctx).go).toBe('/vision');
+    expect(planAssistantReply('check my blood pressure', ctx).go).toBe('/checks');
+  });
   it('explains itself when unsure', () => {
     expect(planAssistantReply('banana', ctx).say).toContain('You can say');
   });

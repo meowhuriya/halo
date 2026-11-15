@@ -11,9 +11,10 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Mic, MicOff, Ear } from 'lucide-react';
 import { useMission } from '../MissionContext';
-import { speakOffline } from '../../utils/speech';
+import { speakOffline, unlockSpeech } from '../../utils/speech';
 import { createVoiceListener, isVoiceCommandSupported, type VoiceListener } from '../../utils/voiceCommands';
 import { chimeDone, chimeListen, chimeMiss } from '../../utils/chime';
+import { answerQuestion } from './assistantBrain';
 
 type Action = { say: string; go?: string; mode?: string };
 
@@ -29,8 +30,10 @@ export function planAssistantReply(
     unreadGround: number;
   }
 ): Action {
-  const t = transcript.toLowerCase().trim();
-  const has = (...words: string[]) => words.some((w) => t.includes(w));
+  const t = transcript.toLowerCase().replace(/[^a-z0-9'\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  const esc = (w: string) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // whole-word / whole-phrase match, so "hi" never matches "this" and "day" never matches "today"
+  const has = (...words: string[]) => words.some((w) => new RegExp(`(^|\\s)${esc(w)}(s|es)?(\\s|$)`).test(t));
   const mins = Math.floor(ctx.delaySeconds / 60);
   const secs = Math.round(ctx.delaySeconds % 60);
   const delayText = ctx.delaySeconds >= 60 ? `${mins} minute${mins === 1 ? '' : 's'} ${secs ? `${secs} seconds` : ''}` : `${secs} seconds`;
@@ -47,7 +50,7 @@ export function planAssistantReply(
   if (has('reaction', 'cognition', 'pvt', 'brain test', 'vigilance', 'fatigue test', 'alert test')) {
     return { say: 'Opening the reaction time test. Tap as soon as the number appears. It takes three minutes.', go: '/cognition' };
   }
-  if (has('blood pressure', 'temperature', 'glucose', 'sugar', 'oxygen', 'spo2', 'sleep', 'mood', 'checks', 'check-in', 'log')) {
+  if (has('blood pressure', 'temperature', 'glucose', 'sugar', 'oxygen', 'spo2', 'sleep', 'mood', 'check', 'check in', 'log a reading')) {
     return { say: 'Opening your guided checks.', go: '/checks' };
   }
   if (has('trend', 'chart', 'history', 'over time', 'graph')) {
@@ -71,13 +74,13 @@ export function planAssistantReply(
   if (has('bridge', 'home', 'dashboard', 'twin', 'main screen')) {
     return { say: 'Going to the Bridge.', go: '/' };
   }
-  if (has('learn', 'explain', 'what is', 'why does', 'teach', 'library')) {
+  if (has('learn', 'explain', 'what is', 'why does', 'teach', 'library', 'tell me about')) {
     return { say: 'Opening the Learn library.', go: '/learn' };
   }
   if (has('validation', 'accuracy', 'how accurate')) {
     return { say: 'Opening the validation page, where camera readings are compared with a reference device.', go: '/validation' };
   }
-  if (has('day', 'date', 'mission')) {
+  if (has('what day', 'mission day', 'which day', 'the date', 'mission')) {
     return { say: `It is mission day ${ctx.missionDay}, ${ctx.envName}.` };
   }
   if (has('who am i', 'my name')) {
@@ -86,11 +89,11 @@ export function planAssistantReply(
   if (has('thank', 'thanks')) {
     return { say: "You're welcome. I'm here if you need anything." };
   }
-  if (has('hello', 'hi halo', 'hey halo', 'hey', 'hi')) {
+  if (has('hello', 'hi', 'hey', 'hi halo', 'hey halo', 'good morning')) {
     return { say: `Hello ${ctx.crewName.split(' ')[0]}. Readiness is ${ctx.readiness} percent. What do you need?` };
   }
   return {
-    say: "I didn't catch that. You can say: open the eye test, start a heart scan, how's my readiness, what's the delay to Earth, or emergency.",
+    say: "I didn't catch that. Try: open the eye test, start a heart scan, how's my readiness, what's my last heart rate, why is my sleep flagged, what is SANS, read this out loud, or emergency.",
   };
 }
 
@@ -134,6 +137,18 @@ export const VoiceAssistant: React.FC = () => {
     setInterim('');
     setState('thinking');
     listenerRef.current?.stop();
+    void (async () => {
+    // 1) Health / knowledge questions and "read it out loud" come first
+    const main = document.querySelector('main');
+    const screenText = main ? (main as HTMLElement).innerText : '';
+    const qa = await answerQuestion(transcript, m.crew?.id, screenText).catch(() => null);
+    if (qa) {
+      chimeDone();
+      say(qa.say);
+      if (qa.go) navigate(qa.go);
+      return;
+    }
+    // 2) Otherwise navigation / status commands
     const action = planAssistantReply(transcript, {
       readiness: m.readinessScore,
       alerts: m.activeAlertCount,
@@ -147,6 +162,7 @@ export const VoiceAssistant: React.FC = () => {
     if (understood) chimeDone(); else chimeMiss();
     say(action.say);
     if (action.go) navigate(action.go);
+    })();
   }, [navigate, say]);
 
   const listen = useCallback(() => {
@@ -165,6 +181,7 @@ export const VoiceAssistant: React.FC = () => {
 
   const toggle = useCallback(() => {
     if (!supported) return;
+    unlockSpeech();
     if (state === 'listening') { listenerRef.current?.stop(); setState('off'); return; }
     if (state === 'speaking') { window.speechSynthesis?.cancel(); setState('off'); return; }
     listen();
