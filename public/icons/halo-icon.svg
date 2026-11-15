@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="HALO">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1A2B4A"/><stop offset="1" stop-color="#070C18"/></linearGradient>
+    <linearGradient id="h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#8FB3DC"/></linearGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#73B3E7" stop-opacity="0.15"/><stop offset="0.7" stop-color="#BFE3FF"/><stop offset="1" stop-color="#FFFFFF"/></linearGradient>
+    <radialGradient id="earth" cx="0.5" cy="0" r="1"><stop offset="0" stop-color="#5E8FD6"/><stop offset="0.6" stop-color="#1E3F7A"/><stop offset="1" stop-color="#0B1628"/></radialGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.35" stop-color="#BFE3FF" stop-opacity="0.8"/><stop offset="1" stop-color="#73B3E7" stop-opacity="0"/></radialGradient>
+    <clipPath id="rr"><rect x="16" y="16" width="480" height="480" rx="112"/></clipPath>
+  </defs>
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#bg)" stroke="#5E7FB0" stroke-opacity="0.45" stroke-width="3"/>
+  <g clip-path="url(#rr)">
+    <ellipse cx="300" cy="560" rx="330" ry="150" fill="url(#earth)"/>
+    <ellipse cx="300" cy="560" rx="330" ry="150" fill="none" stroke="#9CC9FF" stroke-opacity="0.5" stroke-width="3"/>
+  </g>
+  <!-- H -->
+  <rect x="166" y="150" width="42" height="212" rx="14" fill="url(#h)"/>
+  <rect x="304" y="150" width="42" height="212" rx="14" fill="url(#h)"/>
+  <rect x="200" y="238" width="112" height="22" rx="11" fill="url(#h)"/>
+  <!-- star at the crossbar -->
+  <circle cx="256" cy="249" r="34" fill="url(#glow)"/>
+  <path d="M256 222 L263 242 L283 249 L263 256 L256 276 L249 256 L229 249 L249 242 Z" fill="#FFFFFF"/>
+  <!-- orbit ring -->
+  <g transform="rotate(-22 256 256)">
+    <ellipse cx="256" cy="256" rx="206" ry="74" fill="none" stroke="url(#ring)" stroke-width="9" stroke-linecap="round"/>
+  </g>
+  <circle cx="414" cy="162" r="9" fill="#FFFFFF"/>
+  <circle cx="414" cy="162" r="22" fill="url(#glow)"/>
+</svg>

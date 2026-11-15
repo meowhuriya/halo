@@ -9,7 +9,7 @@
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Mic, MicOff, Ear } from 'lucide-react';
+import { Mic, MicOff, Ear, Send, X } from 'lucide-react';
 import { useMission } from '../MissionContext';
 import { speakOffline, unlockSpeech } from '../../utils/speech';
 import { createVoiceListener, isVoiceCommandSupported, type VoiceListener } from '../../utils/voiceCommands';
@@ -97,76 +97,83 @@ export function planAssistantReply(
   };
 }
 
+type Turn = { who: 'you' | 'halo'; text: string };
+
+const SUGGESTIONS = [
+  "How's my readiness?",
+  'Open the eye test',
+  'Start a heart scan',
+  "What's my last heart rate?",
+  'What is SANS?',
+  "What's the delay to Earth?",
+];
+
 export const VoiceAssistant: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const mission = useMission();
-  const supported = isVoiceCommandSupported();
+  const voiceSupported = isVoiceCommandSupported();
 
+  const [open, setOpen] = useState(false);
   // 'off' = mic closed · 'listening' = waiting for you · 'thinking' = processing · 'speaking' = HALO talking
   const [state, setState] = useState<'off' | 'listening' | 'thinking' | 'speaking'>('off');
-  const [heard, setHeard] = useState('');
   const [interim, setInterim] = useState('');
-  const [reply, setReply] = useState('');
+  const [typed, setTyped] = useState('');
+  const [turns, setTurns] = useState<Turn[]>([]);
   const [wakeWord, setWakeWord] = useState(false);
 
   const listenerRef = useRef<VoiceListener | null>(null);
   const wakeRef = useRef<VoiceListener | null>(null);
-  const hideTimer = useRef<number | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const logRef = useRef<HTMLDivElement | null>(null);
   const stateRef = useRef(state);
   useEffect(() => { stateRef.current = state; }, [state]);
   const ctxRef = useRef(mission);
   useEffect(() => { ctxRef.current = mission; }, [mission]);
+  useEffect(() => { logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: 'smooth' }); }, [turns, interim]);
 
-  const scheduleHide = useCallback(() => {
-    if (hideTimer.current) window.clearTimeout(hideTimer.current);
-    hideTimer.current = window.setTimeout(() => { setReply(''); setHeard(''); setInterim(''); }, 10000);
-  }, []);
-
-  const say = useCallback((text: string, onDone?: () => void) => {
-    setReply(text);
+  const say = useCallback((text: string) => {
+    setTurns((t) => [...t.slice(-11), { who: 'halo', text }]);
     setState('speaking');
-    const finish = () => { setState('off'); onDone?.(); };
+    const finish = () => setState('off');
     speakOffline(text, { onEnd: finish, onError: finish });
-    scheduleHide();
-  }, [scheduleHide]);
+  }, []);
 
   const handle = useCallback((transcript: string) => {
     const m = ctxRef.current;
-    setHeard(transcript);
+    setTurns((t) => [...t.slice(-11), { who: 'you', text: transcript }]);
     setInterim('');
     setState('thinking');
     listenerRef.current?.stop();
     void (async () => {
-    // 1) Health / knowledge questions and "read it out loud" come first
-    const main = document.querySelector('main');
-    const screenText = main ? (main as HTMLElement).innerText : '';
-    const qa = await answerQuestion(transcript, m.crew?.id, screenText).catch(() => null);
-    if (qa) {
-      chimeDone();
-      say(qa.say);
-      if (qa.go) navigate(qa.go);
-      return;
-    }
-    // 2) Otherwise navigation / status commands
-    const action = planAssistantReply(transcript, {
-      readiness: m.readinessScore,
-      alerts: m.activeAlertCount,
-      delaySeconds: m.config?.oneWayDelaySeconds ?? 0,
-      missionDay: m.config?.missionDay ?? 1,
-      envName: m.environment?.name ?? 'in transit',
-      crewName: m.crew?.name ?? 'crew member',
-      unreadGround: m.unreadGroundCount,
-    });
-    const understood = Boolean(action.go) || !action.say.startsWith("I didn't catch");
-    if (understood) chimeDone(); else chimeMiss();
-    say(action.say);
-    if (action.go) navigate(action.go);
+      const main = document.querySelector('main');
+      const screenText = main ? (main as HTMLElement).innerText : '';
+      const qa = await answerQuestion(transcript, m.crew?.id, screenText).catch(() => null);
+      if (qa) {
+        chimeDone();
+        say(qa.say);
+        if (qa.go) navigate(qa.go);
+        return;
+      }
+      const action = planAssistantReply(transcript, {
+        readiness: m.readinessScore,
+        alerts: m.activeAlertCount,
+        delaySeconds: m.config?.oneWayDelaySeconds ?? 0,
+        missionDay: m.config?.missionDay ?? 1,
+        envName: m.environment?.name ?? 'in transit',
+        crewName: m.crew?.name ?? 'crew member',
+        unreadGround: m.unreadGroundCount,
+      });
+      const understood = Boolean(action.go) || !action.say.startsWith("I didn't catch");
+      if (understood) chimeDone(); else chimeMiss();
+      say(action.say);
+      if (action.go) navigate(action.go);
     })();
   }, [navigate, say]);
 
   const listen = useCallback(() => {
-    if (!supported) return;
+    if (!voiceSupported) return;
+    unlockSpeech();
     if (!listenerRef.current) {
       listenerRef.current = createVoiceListener({
         onTranscript: handle,
@@ -174,22 +181,45 @@ export const VoiceAssistant: React.FC = () => {
         onStateChange: (on) => { if (on) setState('listening'); else if (stateRef.current === 'listening') setState('off'); },
       });
     }
-    setHeard(''); setReply(''); setInterim('');
+    setInterim('');
     chimeListen();
     listenerRef.current?.start();
-  }, [supported, handle]);
+  }, [voiceSupported, handle]);
 
-  const toggle = useCallback(() => {
-    if (!supported) return;
-    unlockSpeech();
+  const toggleMic = useCallback(() => {
     if (state === 'listening') { listenerRef.current?.stop(); setState('off'); return; }
     if (state === 'speaking') { window.speechSynthesis?.cancel(); setState('off'); return; }
     listen();
-  }, [supported, state, listen]);
+  }, [state, listen]);
 
-  // Optional "Hey HALO" wake word: a background listener that only looks for the phrase.
+  const submitTyped = useCallback(() => {
+    const q = typed.trim();
+    if (!q) return;
+    unlockSpeech();
+    setTyped('');
+    handle(q);
+  }, [typed, handle]);
+
+  const openPanel = useCallback(() => {
+    unlockSpeech();
+    setOpen(true);
+    if (turns.length === 0) {
+      const name = ctxRef.current.crew?.name?.split(' ')[0] ?? 'there';
+      setTurns([{ who: 'halo', text: `Hi ${name}. I'm HALO. Ask me anything about your health, or tell me where to go.` }]);
+    }
+    setTimeout(() => inputRef.current?.focus(), 50);
+  }, [turns.length]);
+
+  const closePanel = useCallback(() => {
+    listenerRef.current?.stop();
+    window.speechSynthesis?.cancel();
+    setState('off');
+    setOpen(false);
+  }, []);
+
+  // Optional "Hey HALO" wake word
   useEffect(() => {
-    if (!supported) return;
+    if (!voiceSupported) return;
     if (wakeWord) {
       wakeRef.current = createVoiceListener({
         continuous: true,
@@ -199,8 +229,8 @@ export const VoiceAssistant: React.FC = () => {
           if (/\b(hey|hi|ok|okay)\s+(halo|hello|hollow|hailo)\b/.test(low)) {
             const rest = low.replace(/^.*?(halo|hello|hollow|hailo)\b[,.!?]*\s*/, '').trim();
             wakeRef.current?.stop();
-            if (rest.length > 2) handle(rest);
-            else listen();
+            setOpen(true);
+            if (rest.length > 2) handle(rest); else listen();
           }
         },
       });
@@ -212,81 +242,111 @@ export const VoiceAssistant: React.FC = () => {
     return () => { wakeRef.current?.stop(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wakeWord]);
+  useEffect(() => { if (state === 'off' && wakeWord) wakeRef.current?.start(); }, [state, wakeWord]);
 
-  // After HALO finishes talking, resume the wake-word listener if it's on
-  useEffect(() => {
-    if (state === 'off' && wakeWord) wakeRef.current?.start();
-  }, [state, wakeWord]);
-
-  // Keyboard shortcut: V (when not typing in a field)
+  // Keyboard: V opens the panel and starts listening; Esc closes
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
-      if (e.key.toLowerCase() === 'v' && !e.metaKey && !e.ctrlKey && tag !== 'INPUT' && tag !== 'TEXTAREA') toggle();
+      if (tag === 'INPUT' || tag === 'TEXTAREA') { if (e.key === 'Escape') closePanel(); return; }
+      if (e.key.toLowerCase() === 'v' && !e.metaKey && !e.ctrlKey) { if (!open) openPanel(); toggleMic(); }
+      if (e.key === 'Escape') closePanel();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [toggle]);
+  }, [open, openPanel, toggleMic, closePanel]);
 
   useEffect(() => () => { listenerRef.current?.stop(); wakeRef.current?.stop(); }, []);
 
   if (location.pathname === '/emergency' || location.pathname === '/ground' || location.pathname === '/split') return null;
 
-  const label =
-    !supported ? 'Voice needs Chrome or Edge'
-    : state === 'listening' ? 'Listening…'
-    : state === 'thinking' ? 'Thinking…'
-    : state === 'speaking' ? 'HALO is speaking · tap to stop'
-    : 'Tap to talk to HALO · press V';
-
-  const ring =
-    !supported ? 'bg-slate-700/60 border-slate-500 text-slate-400 cursor-not-allowed'
-    : state === 'listening' ? 'bg-emerald-500 border-emerald-200 text-[#06251A] shadow-[0_0_0_10px_rgba(16,185,129,0.25),0_0_40px_rgba(16,185,129,0.8)] scale-110'
-    : state === 'thinking' ? 'bg-amber-400 border-amber-200 text-[#2A1B00] shadow-[0_0_30px_rgba(251,191,36,0.7)]'
-    : state === 'speaking' ? 'bg-cyan-400 border-cyan-100 text-[#0B1628] shadow-[0_0_30px_rgba(115,179,231,0.8)]'
-    : 'bg-slate-600 border-slate-400 text-slate-200 hover:bg-slate-500 hover:text-white';
+  const statusLabel =
+    state === 'listening' ? 'Listening…' : state === 'thinking' ? 'Thinking…' : state === 'speaking' ? 'Speaking · tap mic to stop' : voiceSupported ? 'Type, or tap the mic' : 'Type your question (voice needs Chrome or Edge)';
+  const micClass =
+    !voiceSupported ? 'bg-slate-700/60 border-slate-500 text-slate-400 cursor-not-allowed'
+    : state === 'listening' ? 'bg-emerald-500 border-emerald-200 text-[#06251A] shadow-[0_0_0_8px_rgba(16,185,129,0.25),0_0_30px_rgba(16,185,129,0.8)] scale-105'
+    : state === 'thinking' ? 'bg-amber-400 border-amber-200 text-[#2A1B00]'
+    : state === 'speaking' ? 'bg-cyan-400 border-cyan-100 text-[#0B1628] shadow-[0_0_24px_rgba(115,179,231,0.8)]'
+    : 'bg-slate-600 border-slate-400 text-slate-100 hover:bg-slate-500';
 
   return (
     <>
-      {(heard || interim || reply || state !== 'off') && (
+      {open && (
         <div
-          role="status"
-          aria-live="polite"
-          className="fixed bottom-28 right-6 z-50 w-[min(92vw,22rem)] rounded-2xl border border-white/15 bg-[#12213A]/95 backdrop-blur px-4 py-3 shadow-2xl text-sm space-y-1"
+          role="dialog"
+          aria-label="HALO assistant"
+          className="fixed bottom-24 right-4 sm:right-6 z-50 w-[min(94vw,24rem)] max-h-[70vh] flex flex-col rounded-3xl border border-white/15 bg-[#0F1B31]/97 backdrop-blur-xl shadow-2xl overflow-hidden"
         >
-          <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-wider text-slate-300/80">
-            <span className={`inline-block w-2 h-2 rounded-full ${state === 'listening' ? 'bg-emerald-400 animate-pulse' : state === 'thinking' ? 'bg-amber-400 animate-pulse' : state === 'speaking' ? 'bg-cyan-300 animate-pulse' : 'bg-slate-500'}`} />
-            {label}
-          </div>
-          {state === 'listening' && (
-            <div className="flex items-end gap-1 h-5" aria-hidden>
-              {[0, 1, 2, 3, 4].map((i) => (
-                <span key={i} className="w-1.5 rounded-full bg-emerald-400 animate-[bounce_1s_infinite]" style={{ height: `${8 + (i % 3) * 5}px`, animationDelay: `${i * 0.12}s` }} />
-              ))}
-              <span className="ml-2 text-emerald-100/80 italic">{interim || 'Go ahead…'}</span>
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10">
+            <img src="/icons/halo-buddy.svg" alt="" className="w-9 h-9" />
+            <div className="min-w-0">
+              <div className="text-sm font-bold text-white leading-tight">HALO</div>
+              <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
+                <span className={`inline-block w-1.5 h-1.5 rounded-full ${state === 'listening' ? 'bg-emerald-400 animate-pulse' : state === 'thinking' ? 'bg-amber-400 animate-pulse' : state === 'speaking' ? 'bg-cyan-300 animate-pulse' : 'bg-slate-500'}`} />
+                {statusLabel}
+              </div>
             </div>
-          )}
-          {heard && <div className="font-mono text-xs text-slate-300/80">You: "{heard}"</div>}
-          {reply && <div className="text-slate-50">{reply}</div>}
-          {supported && (
-            <label className="flex items-center gap-2 pt-1 text-[11px] text-slate-400 cursor-pointer select-none">
+            <button type="button" onClick={closePanel} aria-label="Close assistant" className="ml-auto w-10 h-10 rounded-full hover:bg-white/10 flex items-center justify-center text-slate-300"><X size={18} /></button>
+          </div>
+
+          <div ref={logRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-2 text-sm">
+            {turns.map((t, i) => (
+              <div key={i} className={`flex ${t.who === 'you' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[85%] px-3.5 py-2 rounded-2xl leading-snug ${t.who === 'you' ? 'bg-cyan-500/25 text-cyan-50 rounded-br-md' : 'bg-white/10 text-slate-100 rounded-bl-md'}`}>{t.text}</div>
+              </div>
+            ))}
+            {state === 'listening' && (
+              <div className="flex justify-end"><div className="max-w-[85%] px-3.5 py-2 rounded-2xl rounded-br-md bg-emerald-500/15 text-emerald-100 italic">{interim || 'Go ahead…'}</div></div>
+            )}
+          </div>
+
+          <div className="px-3 pb-2 flex gap-2 overflow-x-auto no-scrollbar">
+            {SUGGESTIONS.map((sug) => (
+              <button key={sug} type="button" onClick={() => { unlockSpeech(); handle(sug); }} className="shrink-0 min-h-[36px] px-3 rounded-full border border-white/15 bg-white/5 hover:bg-white/10 text-xs text-slate-200 whitespace-nowrap">{sug}</button>
+            ))}
+          </div>
+
+          <form onSubmit={(e) => { e.preventDefault(); submitTyped(); }} className="flex items-center gap-2 p-3 border-t border-white/10">
+            <input
+              ref={inputRef}
+              value={typed}
+              onChange={(e) => setTyped(e.target.value)}
+              placeholder="Ask HALO…"
+              aria-label="Ask HALO"
+              className="flex-1 min-h-[48px] rounded-full bg-black/40 border border-white/15 px-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-400"
+            />
+            {typed.trim() ? (
+              <button type="submit" aria-label="Send" className="w-12 h-12 rounded-full bg-cyan-500 text-[#0B1628] flex items-center justify-center hover:bg-cyan-400"><Send size={18} /></button>
+            ) : (
+              <button type="button" onClick={toggleMic} disabled={!voiceSupported} aria-pressed={state === 'listening'} aria-label={voiceSupported ? 'Talk to HALO' : 'Voice needs Chrome or Edge'} className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all ${micClass}`}>
+                {voiceSupported ? <Mic size={20} /> : <MicOff size={20} />}
+              </button>
+            )}
+          </form>
+
+          {voiceSupported && (
+            <label className="flex items-center gap-2 px-4 pb-3 text-[11px] text-slate-400 cursor-pointer select-none">
               <input type="checkbox" checked={wakeWord} onChange={(e) => setWakeWord(e.target.checked)} className="accent-emerald-500" />
               <Ear size={12} /> Listen for "Hey HALO"
             </label>
           )}
         </div>
       )}
+
       <button
         type="button"
         data-testid="voice-assistant-button"
-        onClick={toggle}
-        disabled={!supported}
-        aria-pressed={state === 'listening'}
-        aria-label={label}
-        title={label}
-        className={`fixed bottom-6 right-[108px] z-50 w-[60px] h-[60px] rounded-full flex items-center justify-center border-2 transition-all duration-200 glove-target focus:outline-none focus:ring-4 focus:ring-emerald-400/40 ${ring}`}
+        onClick={() => (open ? closePanel() : openPanel())}
+        aria-expanded={open}
+        aria-label={open ? 'Close HALO assistant' : 'Open HALO assistant (press V)'}
+        title="Talk to HALO · press V"
+        className={`fixed bottom-6 right-[108px] z-50 w-[64px] h-[64px] rounded-full border-2 flex items-center justify-center transition-all duration-200 glove-target focus:outline-none focus:ring-4 focus:ring-cyan-400/40 bg-[#0F1B31] ${
+          state === 'listening' ? 'border-emerald-300 shadow-[0_0_0_8px_rgba(16,185,129,0.25),0_0_30px_rgba(16,185,129,0.8)]'
+          : state === 'speaking' ? 'border-cyan-200 shadow-[0_0_24px_rgba(115,179,231,0.8)]'
+          : open ? 'border-cyan-300 shadow-lg' : 'border-slate-500/70 hover:border-cyan-300 shadow-lg'
+        }`}
       >
-        {!supported ? <MicOff size={26} /> : <Mic size={26} />}
+        <img src="/icons/halo-buddy.svg" alt="" className="w-12 h-12 pointer-events-none" />
       </button>
     </>
   );

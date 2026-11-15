@@ -173,11 +173,13 @@ export const OnboardingView: React.FC = () => {
             <Rocket size={13} />
             Autonomous Deep-Space Health System
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            Astronaut Onboarding &amp; Mission Config
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
+            <img src="/icons/halo-icon.svg" alt="" className="w-10 h-10 rounded-xl" />
+            HALO
           </h1>
+          <p className="text-base text-cyan-100 mt-1 font-medium">An astronaut's home buddy, even this far from home.</p>
           <p className="text-sm text-slate-300 mt-1">
-            Configure your crew biometric profile, gravitational environment, and speed-of-light telemetry delay.
+            Set up your crew profile, environment and light delay — or load the demo mission.
           </p>
         </div>
 

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="HALO assistant">
+  <defs>
+    <linearGradient id="helm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#C9D8EE"/></linearGradient>
+    <linearGradient id="visor" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1A2A47"/><stop offset="1" stop-color="#070C18"/></linearGradient>
+    <linearGradient id="halo" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#73B3E7" stop-opacity="0.2"/><stop offset="1" stop-color="#BFE3FF"/></linearGradient>
+  </defs>
+  <!-- halo -->
+  <ellipse cx="64" cy="24" rx="30" ry="9" fill="none" stroke="url(#halo)" stroke-width="4" stroke-linecap="round" transform="rotate(-12 64 24)"/>
+  <!-- body -->
+  <path d="M40 126 C40 102 50 94 64 94 C78 94 88 102 88 126 Z" fill="url(#helm)"/>
+  <path d="M66 104 L68 110 L74 112 L68 114 L66 120 L64 114 L58 112 L64 110 Z" fill="#73B3E7"/>
+  <!-- ears -->
+  <rect x="18" y="52" width="14" height="26" rx="7" fill="#C9D8EE"/>
+  <rect x="96" y="52" width="14" height="26" rx="7" fill="#C9D8EE"/>
+  <!-- helmet -->
+  <circle cx="64" cy="62" r="36" fill="url(#helm)"/>
+  <!-- visor -->
+  <path d="M34 60 C34 44 47 34 64 34 C81 34 94 44 94 60 C94 74 82 84 64 84 C46 84 34 74 34 60 Z" fill="url(#visor)"/>
+  <!-- happy eyes -->
+  <path d="M46 62 Q53 54 60 62" fill="none" stroke="#9CDCFF" stroke-width="4" stroke-linecap="round"/>
+  <path d="M68 62 Q75 54 82 62" fill="none" stroke="#9CDCFF" stroke-width="4" stroke-linecap="round"/>
+  <!-- sparkle -->
+  <path d="M108 30 L110 36 L116 38 L110 40 L108 46 L106 40 L100 38 L106 36 Z" fill="#FFFFFF"/>
+</svg>

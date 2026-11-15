@@ -1,5 +1,7 @@
 # HALO — Health Autonomy for Long-duration Operations
 
+*An astronaut's home buddy, even this far from home.*
+
 **NASA Space Apps Challenge 2026 · Challenge: "Health monitoring software for astronauts" (Brazilian Space Agency)**
 
 **Live app:** https://halo-meowenor.vercel.app/

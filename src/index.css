@@ -119,3 +119,7 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(56, 225, 255, 0.4);
 }
+
+/* hide horizontal scrollbar on chip rows */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }

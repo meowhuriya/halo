@@ -9,17 +9,18 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'icons/*.png', 'fonts/*'],
+      includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'icons/*.png', 'icons/*.svg', 'fonts/*'],
       manifest: {
         name: 'HALO — Health Autonomy for Long-duration Operations',
         short_name: 'HALO',
-        description: 'Autonomous, offline-first health co-pilot for deep-space missions and astronauts',
-        theme_color: '#05070D',
-        background_color: '#05070D',
+        description: 'An astronaut\'s home buddy, even this far from home. Offline-first health co-pilot for deep-space crews.',
+        theme_color: '#0B1628',
+        background_color: '#0B1628',
         display: 'standalone',
         orientation: 'any',
         start_url: '/',
         icons: [
+          { src: '/icons/halo-icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
           {
             src: '/icons/icon-192.png',
             sizes: '192x192',
