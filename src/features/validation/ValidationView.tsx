@@ -125,7 +125,7 @@ export const ValidationView: React.FC = () => {
             <line x1={PAD} x2={W - PAD} y1={sy(stats.meanBias)} y2={sy(stats.meanBias)} stroke="#73B3E7" strokeDasharray="4 3" />
             <line x1={PAD} x2={W - PAD} y1={sy(stats.loaHigh)} y2={sy(stats.loaHigh)} stroke="#F59E0B" strokeDasharray="4 3" />
             <line x1={PAD} x2={W - PAD} y1={sy(stats.loaLow)} y2={sy(stats.loaLow)} stroke="#F59E0B" strokeDasharray="4 3" />
-            {shown.map((p, i) => (
+            {shown.map((_p, i) => (
               <circle key={i} cx={sx(means[i])} cy={sy(diffs[i])} r={5} fill={Math.abs(diffs[i]) <= 5 ? '#22C55E' : '#F97316'} stroke="#0B1628" />
             ))}
             <text x={PAD} y={H - 6} fill="#94A3B8" fontSize="10" fontFamily="monospace">mean of HALO & reference (bpm) →</text>
