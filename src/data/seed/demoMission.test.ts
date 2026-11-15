@@ -1,3 +1,4 @@
+import type { HealthStatus } from '../../data/db';
 import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { db } from '../db';
@@ -76,7 +77,7 @@ describe('Demo Mission Seed Verification per HALO_SPEC §7.15 (v3)', () => {
     expect(radReading?.status).toBe('NOMINAL');
 
     // 4. Readiness score: with ALERTs in sleep, PVT, amsler, and WATCH in BP, readiness must be below 80
-    const latestMap = new Map<string, { indicator: string; status: any }>();
+    const latestMap = new Map<string, { indicator: string; status: HealthStatus }>();
     for (const r of readings) {
       latestMap.set(r.indicator, { indicator: r.indicator, status: r.status });
     }

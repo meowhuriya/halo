@@ -1,3 +1,4 @@
+import type { HealthStatus } from '../../data/db';
 import { db } from '../../data/db';
 import { formatCommDelay, getAutonomyLevel } from '../../config/environments';
 import { computeReadinessFromReadings } from '../../engine/readiness';
@@ -51,7 +52,7 @@ export async function getLiveJudgeScriptData(): Promise<JudgeScriptData> {
   const pvtSlowdownPercent = Math.round(((pvtBaseline - pvtSpeed) / pvtBaseline) * 1000) / 10;
 
   // Readiness calculation via engine
-  const latestMap = new Map<string, { indicator: string; status: any }>();
+  const latestMap = new Map<string, { indicator: string; status: HealthStatus }>();
   for (const r of readings) {
     latestMap.set(r.indicator, { indicator: r.indicator, status: r.status });
   }
